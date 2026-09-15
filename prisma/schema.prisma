@@ -1,0 +1,296 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SystemRole {
+  OWNER
+  VENTURE_ADMIN
+  SALES
+  OPERATIONS
+  FINANCE
+  ASSOCIATE
+  VIEWER
+}
+enum LeadStage {
+  NEW_LEAD
+  REQUIREMENTS
+  VENUE_SOURCING
+  PRICING
+  CALL
+  QUOTE
+  FOLLOW_UP
+  DEPOSIT
+  VENUE_SECURED
+  CONFIRMED
+  EVENT
+  WON
+  LOST
+}
+enum VenuePriceStatus {
+  ESTIMATED
+  HISTORICAL
+  VERIFIED
+  BOOKED
+}
+enum AiJobStatus {
+  QUEUED
+  RUNNING
+  NEEDS_APPROVAL
+  COMPLETED
+  FAILED
+  BLOCKED
+}
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  name String?
+  role SystemRole @default(VIEWER)
+  createdAt DateTime @default(now())
+  memberships VentureMembership[]
+  dealAssignments DealAssignment[]
+  tasks Task[]
+}
+model Venture {
+  id String @id @default(cuid())
+  name String @unique
+  sector String?
+  status String @default("Active")
+  createdAt DateTime @default(now())
+  memberships VentureMembership[]
+  contacts Contact[]
+  leads Lead[]
+  deals Deal[]
+  tasks Task[]
+  aiJobs AiJob[]
+  revenue RevenueEntry[]
+  documents Document[]
+  pricingRules PricingRule[]
+}
+model VentureMembership {
+  id String @id @default(cuid())
+  userId String
+  ventureId String
+  role SystemRole
+  canViewFinancials Boolean @default(false)
+  canViewCosts Boolean @default(false)
+  canViewMargins Boolean @default(false)
+  canViewCommissions Boolean @default(false)
+  canManageMembers Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  @@unique([userId, ventureId])
+}
+model Deal {
+  id String @id @default(cuid())
+  ventureId String
+  title String
+  stage String
+  value Decimal? @db.Decimal(12,2)
+  sensitiveFinancials Boolean @default(true)
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  assignments DealAssignment[]
+  createdAt DateTime @default(now())
+}
+model DealAssignment {
+  id String @id @default(cuid())
+  userId String
+  dealId String
+  canViewFinancials Boolean @default(false)
+  canEdit Boolean @default(true)
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  deal Deal @relation(fields:[dealId], references:[id], onDelete:Cascade)
+  @@unique([userId, dealId])
+}
+model Organisation {
+  id String @id @default(cuid())
+  name String
+  type String?
+  website String?
+  contacts Contact[]
+  createdAt DateTime @default(now())
+}
+model Contact {
+  id String @id @default(cuid())
+  name String
+  email String?
+  phone String?
+  role String?
+  ventureId String?
+  organisationId String?
+  venture Venture? @relation(fields:[ventureId], references:[id])
+  organisation Organisation? @relation(fields:[organisationId], references:[id])
+  createdAt DateTime @default(now())
+}
+model Lead {
+  id String @id @default(cuid())
+  ventureId String
+  customerName String
+  email String?
+  phone String?
+  requestedLocation String?
+  postcode String?
+  requirements Json?
+  stage LeadStage @default(NEW_LEAD)
+  estimatedValue Decimal? @db.Decimal(12,2)
+  assignedToId String?
+  venueId String?
+  venue Venue? @relation(fields:[venueId],references:[id])
+  venture Venture @relation(fields:[ventureId],references:[id], onDelete:Cascade)
+  calls Call[]
+  quotes Quote[]
+  tasks Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Venue {
+  id String @id @default(cuid())
+  name String
+  address String?
+  postcode String?
+  latitude Float?
+  longitude Float?
+  facilities Json?
+  permittedActivities Json?
+  capacity Int?
+  dimensions String?
+  price Decimal? @db.Decimal(12,2)
+  pricingUnit String?
+  priceStatus VenuePriceStatus @default(ESTIMATED)
+  sourceUrl String?
+  priceVerifiedAt DateTime?
+  availabilityStatus String?
+  contactName String?
+  contactEmail String?
+  contactPhone String?
+  bookingMethod String?
+  depositRequirement String?
+  leads Lead[]
+  bookings Booking[]
+  createdAt DateTime @default(now())
+}
+model PricingRule {
+  id String @id @default(cuid())
+  ventureId String
+  name String
+  activity String
+  customerType String
+  durationMinutes Int?
+  groupMin Int?
+  groupMax Int?
+  basePriceMin Decimal @db.Decimal(12,2)
+  basePriceMax Decimal @db.Decimal(12,2)
+  staffingCost Decimal @default(0) @db.Decimal(12,2)
+  equipmentCost Decimal @default(0) @db.Decimal(12,2)
+  travelCostPerMile Decimal @default(0) @db.Decimal(12,2)
+  minMarginPercent Decimal @default(0) @db.Decimal(5,2)
+  extras Json?
+  active Boolean @default(true)
+  venture Venture @relation(fields:[ventureId],references:[id], onDelete:Cascade)
+  createdAt DateTime @default(now())
+  @@index([ventureId,activity])
+}
+model Quote {
+  id String @id @default(cuid())
+  leadId String
+  customerPrice Decimal @db.Decimal(12,2)
+  directCosts Decimal @db.Decimal(12,2)
+  grossProfit Decimal @db.Decimal(12,2)
+  status String @default("Draft")
+  lead Lead @relation(fields:[leadId],references:[id], onDelete:Cascade)
+  createdAt DateTime @default(now())
+}
+model Call {
+  id String @id @default(cuid())
+  leadId String
+  outcome String
+  notes String?
+  scheduledAt DateTime?
+  completedAt DateTime?
+  providerCallId String?
+  lead Lead @relation(fields:[leadId],references:[id], onDelete:Cascade)
+  createdAt DateTime @default(now())
+}
+model Booking {
+  id String @id @default(cuid())
+  ventureId String
+  venueId String?
+  status String
+  eventAt DateTime?
+  depositAmount Decimal? @db.Decimal(12,2)
+  venue Venue? @relation(fields:[venueId],references:[id])
+  createdAt DateTime @default(now())
+}
+model Task {
+  id String @id @default(cuid())
+  title String
+  status TaskStatus @default(TODO)
+  priority Int @default(3)
+  dueAt DateTime?
+  ventureId String?
+  leadId String?
+  assigneeId String?
+  venture Venture? @relation(fields:[ventureId],references:[id], onDelete:Cascade)
+  lead Lead? @relation(fields:[leadId],references:[id], onDelete:Cascade)
+  assignee User? @relation(fields:[assigneeId],references:[id])
+  createdAt DateTime @default(now())
+}
+model AiJob {
+  id String @id @default(cuid())
+  ventureId String
+  skillId String?
+  title String
+  input Json?
+  output Json?
+  status AiJobStatus @default(QUEUED)
+  requiresApproval Boolean @default(false)
+  approvedAt DateTime?
+  startedAt DateTime?
+  completedAt DateTime?
+  error String?
+  integrationKey String?
+  venture Venture @relation(fields:[ventureId],references:[id], onDelete:Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Skill {
+  id String @id @default(cuid())
+  name String @unique
+  description String?
+  sourceUrl String?
+  integrationKey String?
+  active Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+model Document {
+  id String @id @default(cuid())
+  ventureId String?
+  title String
+  storageKey String
+  type String?
+  venture Venture? @relation(fields:[ventureId],references:[id], onDelete:Cascade)
+  createdAt DateTime @default(now())
+}
+model RevenueEntry {
+  id String @id @default(cuid())
+  ventureId String
+  amount Decimal @db.Decimal(12,2)
+  type String
+  category String?
+  occurredAt DateTime
+  notes String?
+  venture Venture @relation(fields:[ventureId],references:[id], onDelete:Cascade)
+  createdAt DateTime @default(now())
+}
