@@ -7,13 +7,22 @@ type Skill = { id: string; name: string; description?: string | null; active: bo
 const zipU16 = (bytes: Uint8Array, offset: number) => bytes[offset] | (bytes[offset + 1] << 8);
 const zipU32 = (bytes: Uint8Array, offset: number) => (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24)) >>> 0;
 
-async function extractSkillMarkdown(file: File) {
-  const bytes = new Uint8Array(await file.arrayBuffer());
+async function inflateZipEntry(compression: number, compressed: Uint8Array, fileName: string) {
+  if (compression === 0) return compressed;
+  if (compression === 8) {
+    const stream = new Blob([compressed as BlobPart]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+  throw new Error(`${fileName} uses unsupported ZIP compression.`);
+}
+
+async function extractSkillSources(bytes: Uint8Array, archiveName: string, depth = 0): Promise<Array<{ path: string; instructions: string }>> {
+  if (depth > 4) throw new Error(`${archiveName} contains too many nested ZIP levels.`);
   let end = -1;
   for (let offset = bytes.length - 22; offset >= Math.max(0, bytes.length - 65_557); offset -= 1) {
     if (zipU32(bytes, offset) === 0x06054b50) { end = offset; break; }
   }
-  if (end < 0) throw new Error(`${file.name} is not a valid ZIP file.`);
+  if (end < 0) throw new Error(`${archiveName} is not a valid ZIP file.`);
   let cursor = zipU32(bytes, end + 16);
   const sources: Array<{ path: string; instructions: string }> = [];
   while (cursor + 46 <= bytes.length && zipU32(bytes, cursor) === 0x02014b50) {
@@ -24,20 +33,23 @@ async function extractSkillMarkdown(file: File) {
     const commentLength = zipU16(bytes, cursor + 32);
     const localOffset = zipU32(bytes, cursor + 42);
     const path = new TextDecoder().decode(bytes.slice(cursor + 46, cursor + 46 + nameLength));
-    if (/(^|\/)SKILL\.md$/i.test(path) && zipU32(bytes, localOffset) === 0x04034b50) {
-      const start = localOffset + 30 + zipU16(bytes, localOffset + 26) + zipU16(bytes, localOffset + 28);
-      const compressed = bytes.slice(start, start + compressedSize);
-      let data: Uint8Array;
-      if (compression === 0) data = compressed;
-      else if (compression === 8) {
-        const stream = new Blob([compressed as BlobPart]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
-        data = new Uint8Array(await new Response(stream).arrayBuffer());
-      } else throw new Error(`${file.name} uses unsupported ZIP compression.`);
-      sources.push({ path, instructions: new TextDecoder().decode(data) });
+    const isSkill = /(^|\/)SKILL\.md$/i.test(path);
+    const isNestedZip = /\.zip$/i.test(path);
+    if ((isSkill || isNestedZip) && zipU32(bytes, localOffset) === 0x04034b50) {
+      const dataStart = localOffset + 30 + zipU16(bytes, localOffset + 26) + zipU16(bytes, localOffset + 28);
+      const compressed = bytes.slice(dataStart, dataStart + compressedSize);
+      const data = await inflateZipEntry(compression, compressed, archiveName);
+      if (isSkill) sources.push({ path: `${archiveName}/${path}`, instructions: new TextDecoder().decode(data) });
+      else sources.push(...await extractSkillSources(data, `${archiveName}/${path}`, depth + 1));
     }
     cursor += 46 + nameLength + extraLength + commentLength;
   }
-  if (!sources.length) throw new Error(`${file.name} contains no SKILL.md files.`);
+  return sources;
+}
+
+async function extractSkillMarkdown(file: File) {
+  const sources = await extractSkillSources(new Uint8Array(await file.arrayBuffer()), file.name);
+  if (!sources.length) throw new Error(`${file.name} contains no SKILL.md files, including inside nested ZIPs.`);
   return { fileName: file.name, sources };
 }
 
