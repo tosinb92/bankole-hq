@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import CreativeStudio from "@/components/creative-studio";
 import IntelligenceStudio from "@/components/intelligence-studio";
+import SkillsLibrary from "@/components/skills-library";
 import { aiJobs, leads, pricingRules as seededRules, skills, venues, ventures } from "@/lib/demo-data";
 import { calculateEntitlement } from "@/lib/entitlement";
 import { PricingRule } from "@/lib/types";
@@ -61,7 +62,7 @@ export default function HQApp() {
       {!venture && view === "Bubble Operations" && <BubbleOps openCall={openCall} setOpenCall={setOpenCall} callResult={callResult} setCallResult={setCallResult}/>} 
       {!venture && view === "Tasks" && <Tasks/>}
       {!venture && view === "AI Workforce" && <AiJobs/>}
-      {!venture && view === "Skills Library" && <Skills/>}
+      {!venture && view === "Skills Library" && <SkillsLibrary openCreate={() => setView("Create")}/>} 
       {!venture && view === "Contacts & Orgs" && <Contacts/>}
       {!venture && view === "Documents" && <Documents/>}
       {!venture && view === "Revenue" && <Revenue/>}
