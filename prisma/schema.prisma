@@ -453,6 +453,7 @@ model Professional {
   source String?
   lastVerifiedAt DateTime?
   verification ProfessionalVerification @default(UNREVIEWED)
+  imports ProfessionalImport[]
   createdAt DateTime @default(now())
 }
 model ProfessionalImport {
@@ -461,11 +462,14 @@ model ProfessionalImport {
   sourceTab String
   sourceRow Int?
   rawRecord Json
+  professionalId String?
   classification String?
   dedupeKey String
   importStatus String @default("Pending")
   createdAt DateTime @default(now())
+  professional Professional? @relation(fields:[professionalId], references:[id], onDelete:SetNull)
   @@unique([sourceSpreadsheetId, sourceTab, sourceRow])
+  @@index([dedupeKey])
 }
 model SkillExecution {
   id String @id @default(cuid())
