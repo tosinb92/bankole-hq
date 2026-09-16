@@ -136,6 +136,8 @@ model Venture {
   skillExecutions SkillExecution[]
   intelligenceEvidence IntelligenceEvidence[]
   intelligenceSkillRuns IntelligenceSkillRun[]
+  competitors Competitor[]
+  intelligenceOpportunities IntelligenceOpportunity[]
   brandSettings VentureBrandSettings?
 }
 model VentureMembership {
@@ -519,19 +521,68 @@ model SkillExecution {
 model IntelligenceEvidence {
   id String @id @default(cuid())
   ventureId String
+  competitorId String?
   competitorName String
+  accountName String?
   platform String
+  distribution String @default("ORGANIC")
   contentType String?
+  mediaUrl String?
   title String
   sourceUrl String?
   observedAt DateTime?
   capturedAt DateTime @default(now())
   contentText String?
+  hook String?
+  offer String?
+  cta String?
+  audienceAngle String?
+  format String?
+  durationSeconds Int?
+  landingPageUrl String?
+  firstSeenAt DateTime?
+  lastSeenAt DateTime?
+  activityStatus String?
+  observableSignals Json?
   metrics Json?
   provenance String
   venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  competitor Competitor? @relation(fields:[competitorId], references:[id], onDelete:SetNull)
   runLinks IntelligenceSkillRunEvidence[]
+  opportunities IntelligenceOpportunity[]
   @@index([ventureId, competitorName, platform])
+  @@index([competitorId, capturedAt])
+}
+model Competitor {
+  id String @id @default(cuid())
+  ventureId String
+  name String
+  websiteUrl String?
+  instagramUrl String?
+  facebookUrl String?
+  youtubeChannelUrl String?
+  metaAdLibraryUrl String?
+  active Boolean @default(true)
+  lastCollectedAt DateTime?
+  lastCollectionError String?
+  createdAt DateTime @default(now())
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  evidence IntelligenceEvidence[]
+  @@unique([ventureId, name])
+  @@index([ventureId, active])
+}
+model IntelligenceOpportunity {
+  id String @id @default(cuid())
+  ventureId String
+  evidenceId String?
+  skillRunId String?
+  title String
+  brief String
+  status String @default("Needs Approval")
+  createdAt DateTime @default(now())
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  evidence IntelligenceEvidence? @relation(fields:[evidenceId], references:[id], onDelete:SetNull)
+  @@index([ventureId, status])
 }
 model IntelligenceSkillRun {
   id String @id @default(cuid())
