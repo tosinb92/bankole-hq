@@ -40,8 +40,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Venture, approved skill and workflow input are required." }, { status: 400 });
   }
 
-  const venture = await prisma.venture.findUnique({ where: { name: body.venture.trim() } });
-  if (!venture) return NextResponse.json({ error: "Venture not found." }, { status: 404 });
+  const ventureName = body.venture.trim();
+  const allowedVentures = new Set(["Bubble Leisure", "TripleMMM", "Oddly", "Lucky Studios", "SAYAH", "FireComplianceUK", "Bankole & Associates"]);
+  if (!allowedVentures.has(ventureName)) return NextResponse.json({ error: "Venture not found." }, { status: 404 });
+  const venture = await prisma.venture.upsert({ where: { name: ventureName }, create: { name: ventureName }, update: {} });
 
   const skill = await prisma.skill.findUnique({
     where: { id: body.skillId },
