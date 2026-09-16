@@ -78,6 +78,22 @@ ALTER TABLE "SkillExecution" ADD CONSTRAINT "SkillExecution_dealId_fkey" FOREIGN
 ALTER TABLE "ProfessionalImport" ADD CONSTRAINT "ProfessionalImport_professionalId_fkey" FOREIGN KEY ("professionalId") REFERENCES "Professional"("id") ON DELETE SET NULL;
 ALTER TABLE "VentureBrandSettings" ADD CONSTRAINT "VentureBrandSettings_ventureId_fkey" FOREIGN KEY ("ventureId") REFERENCES "Venture"("id") ON DELETE CASCADE;
 
+ALTER TABLE "Skill" ADD COLUMN "sourceFileId" TEXT;
+ALTER TABLE "Skill" ADD COLUMN "sourceFile" TEXT;
+ALTER TABLE "Skill" ADD COLUMN "sourceVersion" TEXT;
+ALTER TABLE "Skill" ADD COLUMN "instructions" TEXT;
+ALTER TABLE "Skill" ADD COLUMN "allowedVentureIds" JSONB;
+ALTER TABLE "Skill" ADD COLUMN "requiredInputs" JSONB;
+
+CREATE TABLE "SkillSource" (
+  "id" TEXT NOT NULL, "skillId" TEXT NOT NULL, "driveFileId" TEXT NOT NULL, "zipFileName" TEXT NOT NULL,
+  "sourcePath" TEXT NOT NULL, "sourceUrl" TEXT NOT NULL, "sourceVersion" TEXT, "instructions" TEXT NOT NULL,
+  "importedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "SkillSource_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "SkillSource_skillId_driveFileId_sourcePath_key" ON "SkillSource"("skillId","driveFileId","sourcePath");
+CREATE INDEX "SkillSource_driveFileId_idx" ON "SkillSource"("driveFileId");
+ALTER TABLE "SkillSource" ADD CONSTRAINT "SkillSource_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE;
+
 -- Database-side access: financial rows require finance permission or an explicit financial deal assignment.
 ALTER TABLE "Action" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Communication" ENABLE ROW LEVEL SECURITY;
