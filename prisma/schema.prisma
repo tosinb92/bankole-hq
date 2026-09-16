@@ -134,6 +134,8 @@ model Venture {
   actions Action[]
   communications Communication[]
   skillExecutions SkillExecution[]
+  intelligenceEvidence IntelligenceEvidence[]
+  intelligenceSkillRuns IntelligenceSkillRun[]
   brandSettings VentureBrandSettings?
 }
 model VentureMembership {
@@ -343,6 +345,7 @@ model Skill {
   integrationKey String?
   active Boolean @default(false)
   executions SkillExecution[]
+  intelligenceRuns IntelligenceSkillRun[]
   sources SkillSource[]
   createdAt DateTime @default(now())
 }
@@ -512,6 +515,46 @@ model SkillExecution {
   venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
   deal Deal? @relation(fields:[dealId], references:[id], onDelete:Cascade)
   @@index([ventureId, status])
+}
+model IntelligenceEvidence {
+  id String @id @default(cuid())
+  ventureId String
+  competitorName String
+  platform String
+  contentType String?
+  title String
+  sourceUrl String?
+  observedAt DateTime?
+  capturedAt DateTime @default(now())
+  contentText String?
+  metrics Json?
+  provenance String
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  runLinks IntelligenceSkillRunEvidence[]
+  @@index([ventureId, competitorName, platform])
+}
+model IntelligenceSkillRun {
+  id String @id @default(cuid())
+  ventureId String
+  skillId String
+  scope Json?
+  input Json
+  output Json?
+  status SkillExecutionStatus @default(QUEUED)
+  error String?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  skill Skill @relation(fields:[skillId], references:[id], onDelete:Restrict)
+  evidence IntelligenceSkillRunEvidence[]
+  @@index([ventureId, status])
+}
+model IntelligenceSkillRunEvidence {
+  runId String
+  evidenceId String
+  run IntelligenceSkillRun @relation(fields:[runId], references:[id], onDelete:Cascade)
+  evidence IntelligenceEvidence @relation(fields:[evidenceId], references:[id], onDelete:Cascade)
+  @@id([runId, evidenceId])
 }
 model VentureBrandSettings {
   id String @id @default(cuid())
