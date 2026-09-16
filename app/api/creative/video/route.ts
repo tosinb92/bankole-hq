@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   const body = await request.json() as { prompt?: string; aspectRatio?: "portrait" | "landscape"; referenceImage?: string; durationSeconds?: number; provider?: "runway" };
   if (!body.prompt?.trim()) return NextResponse.json({ error: "A video prompt is required." }, { status: 400 });
   const requestedSeconds = body.durationSeconds ?? 5;
-  const clipCount = requestedSeconds === 15 ? 3 : 1;
+  const clipCount = Math.max(1, Math.ceil(requestedSeconds / 5));
   const provider = getVideoProvider(body.provider ?? "runway");
   try {
     const jobs = [];
