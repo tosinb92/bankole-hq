@@ -13,10 +13,9 @@ const frontmatter = (text: string): Frontmatter => {
   return Object.fromEntries(entries);
 };
 
-export async function importSkillZip(input: { fileId: string; fileName: string; bytes: Uint8Array }) {
-  const sources = readZipTextFiles(input.bytes);
+export async function importSkillTextFiles(input: { fileId: string; fileName: string; sources: Array<[string, string]> }) {
   const imported: string[] = [];
-  for (const [path, instructions] of sources) {
+  for (const [path, instructions] of input.sources) {
     const meta = frontmatter(instructions);
     if (!meta.name) continue;
     const skill = await prisma.skill.upsert({
@@ -32,6 +31,10 @@ export async function importSkillZip(input: { fileId: string; fileName: string; 
     imported.push(meta.name);
   }
   return imported;
+}
+
+export async function importSkillZip(input: { fileId: string; fileName: string; bytes: Uint8Array }) {
+  return importSkillTextFiles({ ...input, sources: [...readZipTextFiles(input.bytes)] });
 }
 
 /** Imports ZIP sources only. It never executes source scripts or activates a skill. */
