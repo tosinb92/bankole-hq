@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import CreativeStudio from "@/components/creative-studio";
+import IntelligenceStudio from "@/components/intelligence-studio";
 import { aiJobs, leads, pricingRules as seededRules, skills, venues, ventures } from "@/lib/demo-data";
 import { calculateEntitlement } from "@/lib/entitlement";
 import { PricingRule } from "@/lib/types";
@@ -64,7 +65,7 @@ export default function HQApp() {
       {!venture && view === "Contacts & Orgs" && <Contacts/>}
       {!venture && view === "Documents" && <Documents/>}
       {!venture && view === "Revenue" && <Revenue/>}
-      {!venture && view === "Intelligence" && <Intelligence/>}
+      {!venture && view === "Intelligence" && <IntelligenceStudio setView={setView}/>}
       {!venture && view === "Bubble Operations" && <section className="split lower"><PricingEngine rules={rules} rule={rule} selectRule={setSelectedRule} venueCost={venueCost} setVenueCost={setVenueCost} travel={travel} setTravel={setTravel} calc={calculation}/><PricingRules rules={rules} toggle={toggleRule}/></section>}
     </section>
   </main>;
