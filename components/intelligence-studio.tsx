@@ -1,56 +1,54 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type Evidence = { id: string; venture: string; competitor: string; platform: string; title: string; captured: string; provenance: string; content: string };
-type SkillResult = { id: string; output: string; evidence: Array<{ id: string; title: string; sourceUrl?: string | null; provenance: string }> };
+type Competitor = { id: string; name: string; websiteUrl?: string | null; lastCollectedAt?: string | null; lastCollectionError?: string | null };
+type Evidence = { id: string; competitorName: string; platform: string; distribution: string; title: string; sourceUrl?: string | null; mediaUrl?: string | null; contentText?: string | null; activityStatus?: string | null; capturedAt: string; provenance: string };
+type Opportunity = { id: string; title: string; brief: string; status: string; createdAt: string };
+type SkillRun = { id: string; output: string; evidence: Array<{ id: string; title: string; sourceUrl?: string | null; provenance: string }> };
 
-const importedSkills = ["Niche Hacking", "Instagram Research Capture", "Content Repurposing", "Hook-Proof-Value-CTA", "Kallaway Rewrite", "YappMaxxing Scriptwriter", "Carousel Creation", "YouTube Packaging"];
-const demoEvidence: Evidence[] = [
-  { id: "demo-bubble-reel", venture: "Bubble Leisure", competitor: "Example local events account", platform: "Instagram", title: "Party activity Reel", captured: "Seeded demonstration evidence", provenance: "Demo capture — no live platform connection", content: "A short activity-party Reel captured as a demonstration record. Connect a research source to preserve the real post, caption and metrics." },
-  { id: "demo-oddly-post", venture: "Oddly", competitor: "Example creative studio", platform: "Instagram", title: "Surreal visual post", captured: "Seeded demonstration evidence", provenance: "Demo capture — no live platform connection", content: "A visual reference captured as a demonstration record. No performance metrics or claim of competitor results are included." },
-  { id: "demo-sayah-short", venture: "SAYAH", competitor: "Example artist account", platform: "TikTok", title: "Release teaser short", captured: "Seeded demonstration evidence", provenance: "Demo capture — no live platform connection", content: "A release-teaser format captured as a demonstration record. It is source context, not proof of audience performance." },
-];
+const skills = ["Niche Hacking", "Instagram Research Capture", "Content Repurposing", "Hook-Proof-Value-CTA", "Kallaway Rewrite", "YappMaxxing Scriptwriter", "YappMaxxing Longform", "Carousel Creation", "YouTube Packaging"];
+const tabs = ["Competitor Overview", "Paid Ads", "Organic Content", "Top Creatives", "Repeated / Long-running", "Hooks", "Offers", "Formats", "Emerging Themes", "Recent Changes", "Content Gaps", "Opportunities"];
 
 export default function IntelligenceStudio({ setView }: { setView: (view: string) => void }) {
-  const [venture, setVenture] = useState("Bubble Leisure");
-  const [selected, setSelected] = useState<string[]>(["demo-bubble-reel"]);
+  const [venture] = useState("Bubble Leisure");
+  const [tab, setTab] = useState("Competitor Overview");
+  const [competitors, setCompetitors] = useState<Competitor[]>([]);
+  const [evidence, setEvidence] = useState<Evidence[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [skill, setSkill] = useState("Niche Hacking");
-  const [scope, setScope] = useState("selected competitor content");
-  const [result, setResult] = useState<SkillResult | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [scope, setScope] = useState("one creative");
+  const [result, setResult] = useState<SkillRun | null>(null);
+  const [newCompetitor, setNewCompetitor] = useState({ name: "Bubble Boy Events", websiteUrl: "https://www.bubbleboyevents.co.uk/" });
+  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const evidence = useMemo(() => demoEvidence.filter(item => item.venture === venture), [venture]);
 
-  const toggle = (id: string) => setSelected(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
-  const runSkill = async () => {
-    setBusy(true); setError(null); setResult(null);
-    try {
-      // The visible examples are explicitly demo-only. A live run requires persisted
-      // venture/evidence records and then reads the approved instructions server-side.
-      const response = await fetch("/api/intelligence/run-skill", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ventureId: venture, skillName: skill, evidenceIds: selected, scope: { mode: scope, source: "Intelligence Studio" } }) });
-      const data = await response.json() as { run?: SkillResult; error?: string };
-      if (!response.ok || !data.run) throw new Error(data.error ?? "Skill execution could not start.");
-      setResult(data.run);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Skill execution could not start."); }
-    finally { setBusy(false); }
+  const load = async () => {
+    setError(null);
+    const response = await fetch(`/api/intelligence/competitors?venture=${encodeURIComponent(venture)}`, { cache: "no-store" });
+    const data = await response.json() as { competitors?: Competitor[]; evidence?: Evidence[]; opportunities?: Opportunity[]; error?: string };
+    if (!response.ok) { setError(data.error ?? "Competitor Intelligence could not load."); return; }
+    setCompetitors(data.competitors ?? []); setEvidence(data.evidence ?? []); setOpportunities(data.opportunities ?? []);
   };
-  const sendToCreate = () => {
-    if (!result) return;
-    const sources = result.evidence.map(item => `${item.title} (${item.provenance})`).join("; ");
-    sessionStorage.setItem("bankole-hq:create-handoff", JSON.stringify({ venture, project: `${venture} intelligence opportunity`, skill, output: result.output, sourceEvidence: sources }));
-    setView("Create");
-  };
-  const setVentureAndEvidence = (next: string) => { setVenture(next); const first = demoEvidence.find(item => item.venture === next); setSelected(first ? [first.id] : []); setResult(null); setError(null); };
+  useEffect(() => { void load(); }, []);
+  const filtered = useMemo(() => evidence.filter(item => tab === "Paid Ads" ? item.distribution === "PAID" : tab === "Organic Content" ? item.distribution === "ORGANIC" : true), [evidence, tab]);
+  const toggle = (id: string) => setSelected(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
+  const addCompetitor = async () => { setBusy("add"); setError(null); try { const response = await fetch("/api/intelligence/competitors", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ venture, ...newCompetitor }) }); const data = await response.json() as { error?: string }; if (!response.ok) throw new Error(data.error ?? "Competitor could not be saved."); await load(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Competitor could not be saved."); } finally { setBusy(null); } };
+  const collect = async (competitor: Competitor) => { setBusy(competitor.id); setError(null); try { const response = await fetch(`/api/intelligence/competitors/${competitor.id}/collect`, { method: "POST" }); const data = await response.json() as { error?: string; notice?: string }; if (!response.ok) throw new Error(data.error ?? "Collection failed."); if (data.notice) setError(data.notice); await load(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Collection failed."); } finally { setBusy(null); } };
+  const runSkill = async () => { setBusy("skill"); setError(null); setResult(null); try { const response = await fetch("/api/intelligence/run-skill", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ventureId: venture, skillName: skill, evidenceIds: selected, scope: { mode: scope, source: "Competitor Intelligence" } }) }); const data = await response.json() as { run?: SkillRun; error?: string }; if (!response.ok || !data.run) throw new Error(data.error ?? "Approved skill did not run."); setResult(data.run); } catch (cause) { setError(cause instanceof Error ? cause.message : "Approved skill did not run."); } finally { setBusy(null); } };
+  const saveOpportunity = async () => { if (!result) return; setBusy("opportunity"); setError(null); try { const response = await fetch("/api/intelligence/opportunities", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ venture, title: `${skill} opportunity`, brief: result.output, evidenceId: selected[0], skillRunId: result.id }) }); const data = await response.json() as { error?: string }; if (!response.ok) throw new Error(data.error ?? "Opportunity could not be saved."); await load(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Opportunity could not be saved."); } finally { setBusy(null); } };
+  const sendToCreate = (brief: string, title: string, sources: string) => { sessionStorage.setItem("bankole-hq:create-handoff", JSON.stringify({ venture, project: title, skill: result ? skill : "Observed intelligence", output: brief, sourceEvidence: sources })); setView("Create"); };
 
   return <>
-    <section className="exec-hero intelligence-hero"><div><p className="eyebrow">INTELLIGENCE → APPROVED SKILLS → CREATE</p><h2>Turn captured evidence into an attributable creative opportunity.</h2><p>Research sources provide evidence. Approved imported SKILL.md workflows do the analysis and transformation—nothing is replaced with a generic competitor framework.</p></div><span className="badge needs-approval">Evidence first</span></section>
-    <section className="intelligence-loop"><span>Research / capture</span><i/> <span className="current">Run approved skill</span><i/> <span>Evidence-linked opportunity</span><i/> <span>Send to Create</span><i/> <span>Publish / test / learn</span></section>
-    <section className="intelligence-workspace">
-      <section className="panel intelligence-controls"><label>Venture<select value={venture} onChange={event => setVentureAndEvidence(event.target.value)}>{["Bubble Leisure", "Oddly", "SAYAH"].map(item => <option key={item}>{item}</option>)}</select></label><label>Analyse scope<select value={scope} onChange={event => setScope(event.target.value)}><option>selected competitor content</option><option>selected competitors</option><option>selected platform</option><option>selected campaign / date range</option></select></label><label>Approved imported skill<select value={skill} onChange={event => setSkill(event.target.value)}>{importedSkills.map(item => <option key={item}>{item}</option>)}</select></label><p className="note">The server will use the selected skill’s stored, approved SKILL.md instructions. It will not infer instructions from the name.</p><button className="primary" onClick={runSkill} disabled={busy || !selected.length}>{busy ? "Running approved skill…" : scope.startsWith("selected competitor") ? "Run Skill" : "Analyse Competitors with Skill"}</button></section>
-      <section className="panel evidence-panel"><div className="panel-title"><h2>Captured competitor evidence</h2><span>Source data</span></div>{evidence.map(item => <article key={item.id} className="evidence-card"><label className="evidence-select"><input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggle(item.id)}/><span><b>{item.title}</b><small>{item.competitor} · {item.platform}</small></span></label><p>{item.content}</p><footer><span className="badge">{item.captured}</span><small>{item.provenance}</small></footer></article>)}<p className="note">These are clearly labelled seeded records. Capture/import endpoints persist real URLs, content, provenance and timestamps once the database connection is live.</p></section>
-    </section>
-    {result && <section className="panel intelligence-result"><div className="panel-title"><h2>{skill} output</h2><span className="badge needs-approval">Evidence-linked</span></div><pre>{result.output}</pre><div className="evidence-links"><b>Source evidence</b>{result.evidence.map(item => <span key={item.id}>{item.title} · {item.provenance}</span>)}</div><div className="output-actions"><button onClick={() => navigator.clipboard?.writeText(result.output)}>Copy output</button><button className="primary" onClick={sendToCreate}>Send to Create →</button></div></section>}
-    {error && <section className="creative-error"><b>No substitute output was generated.</b><br/>{error}</section>}
+    <section className="exec-hero intelligence-hero"><div><p className="eyebrow">BUBBLE LEISURE · COMPETITOR INTELLIGENCE</p><h2>Collect observable evidence. Use approved skills to find differentiated opportunities.</h2><p>Paid and organic activity are separate. No private performance, conversion or ROAS is invented.</p></div><button className="primary" onClick={() => void load()} disabled={!!busy}>Refresh workspace</button></section>
+    <section className="intelligence-loop"><span>Research / collect</span><i/><span className="current">Approved skill</span><i/><span>Evidence-backed opportunity</span><i/><span>Send to Create</span><i/><span>Test / learn</span></section>
+    <nav className="intel-tabs">{tabs.map(item => <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item}</button>)}</nav>
+    <section className="intelligence-workspace"><section className="panel intelligence-controls"><div className="panel-title"><h2>Competitors</h2><span>Public sources only</span></div><label>Competitor name<input value={newCompetitor.name} onChange={event => setNewCompetitor({ ...newCompetitor, name: event.target.value })}/></label><label>Public website URL<input value={newCompetitor.websiteUrl} onChange={event => setNewCompetitor({ ...newCompetitor, websiteUrl: event.target.value })}/></label><button className="primary" onClick={addCompetitor} disabled={!!busy}>{busy === "add" ? "Saving…" : "Save competitor"}</button><p className="note">Bubble Boy Events is prefilled only as a public website reference. Add exact public social or Meta Ad Library URLs in the database record when their supported collectors are enabled.</p>{competitors.map(item => <article className="competitor-row" key={item.id}><b>{item.name}</b><small>{item.lastCollectedAt ? `Collected ${new Date(item.lastCollectedAt).toLocaleString()}` : "Not collected"}</small>{item.lastCollectionError && <small className="error-text">{item.lastCollectionError}</small>}<button onClick={() => collect(item)} disabled={!!busy}>{busy === item.id ? "Collecting…" : "Collect website"}</button></article>)}</section>
+      <section className="panel evidence-panel"><div className="panel-title"><h2>{tab}</h2><span>{filtered.length} observed records</span></div>{filtered.length === 0 ? <div className="create-empty">No observed records yet. Save a competitor and collect a publicly accessible source. This workspace does not populate itself with invented claims.</div> : filtered.map(item => <article key={item.id} className="evidence-card"><label className="evidence-select"><input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggle(item.id)}/><span><b>{item.title}</b><small>{item.competitorName} · {item.platform} · {item.distribution}</small></span></label>{item.mediaUrl && <img className="evidence-media" src={item.mediaUrl} alt="Observed competitor creative"/>}<p>{item.contentText}</p><div className="evidence-fields"><span><b>Observed</b>{item.activityStatus ?? "Captured"}</span><span><b>Source</b>{item.sourceUrl ? <a href={item.sourceUrl} target="_blank" rel="noreferrer">Open source ↗</a> : "Not available"}</span><span><b>Collected</b>{new Date(item.capturedAt).toLocaleString()}</span><span><b>AI / skill inference</b>None until an approved skill runs</span></div><footer><small>{item.provenance}</small></footer></article>)}</section></section>
+    <section className="panel skill-runner"><div className="panel-title"><h2>Analyse with approved imported skill</h2><span>{selected.length} selected evidence item{selected.length === 1 ? "" : "s"}</span></div><div className="skill-controls"><label>Scope<select value={scope} onChange={event => setScope(event.target.value)}>{["one creative", "one competitor", "several competitors", "campaign", "platform", "selected date range"].map(item => <option key={item}>{item}</option>)}</select></label><label>Approved SKILL.md<select value={skill} onChange={event => setSkill(event.target.value)}>{skills.map(item => <option key={item}>{item}</option>)}</select></label><button className="primary" onClick={runSkill} disabled={busy === "skill" || !selected.length}>{busy === "skill" ? "Running approved skill…" : "Run Skill"}</button></div><p className="note">The application reads actual stored SKILL.md instructions only. It does not create a generic replacement methodology.</p></section>
+    {result && <section className="panel intelligence-result"><div className="panel-title"><h2>{skill} output</h2><span className="badge needs-approval">Evidence-linked</span></div><pre>{result.output}</pre><div className="evidence-links"><b>Source evidence</b>{result.evidence.map(item => <span key={item.id}>{item.title} · {item.provenance}</span>)}</div><div className="output-actions"><button onClick={() => navigator.clipboard?.writeText(result.output)}>Copy output</button><button onClick={saveOpportunity} disabled={busy === "opportunity"}>{busy === "opportunity" ? "Saving…" : "Create / save Opportunity"}</button><button className="primary" onClick={() => sendToCreate(result.output, `${venture} intelligence opportunity`, result.evidence.map(item => `${item.title} (${item.provenance})`).join("; "))}>Send to Create →</button></div></section>}
+    {tab === "Opportunities" && opportunities.length > 0 && <section className="panel intelligence-result"><div className="panel-title"><h2>Saved opportunities</h2><span>{opportunities.length}</span></div>{opportunities.map(item => <article className="opportunity-card" key={item.id}><b>{item.title}</b><p>{item.brief}</p><small>{item.status} · {new Date(item.createdAt).toLocaleString()}</small><button className="primary" onClick={() => sendToCreate(item.brief, item.title, "Saved Competitor Intelligence opportunity")}>Send to Create →</button></article>)}</section>}
+    {error && <section className="creative-error">{error}</section>}
   </>;
 }
