@@ -334,10 +334,31 @@ model Skill {
   name String @unique
   description String?
   sourceUrl String?
+  sourceFileId String?
+  sourceFile String?
+  sourceVersion String?
+  instructions String?
+  allowedVentureIds Json?
+  requiredInputs Json?
   integrationKey String?
   active Boolean @default(false)
   executions SkillExecution[]
+  sources SkillSource[]
   createdAt DateTime @default(now())
+}
+model SkillSource {
+  id String @id @default(cuid())
+  skillId String
+  driveFileId String
+  zipFileName String
+  sourcePath String
+  sourceUrl String
+  sourceVersion String?
+  instructions String
+  importedAt DateTime @default(now())
+  skill Skill @relation(fields:[skillId], references:[id], onDelete:Cascade)
+  @@unique([skillId, driveFileId, sourcePath])
+  @@index([driveFileId])
 }
 model Document {
   id String @id @default(cuid())
