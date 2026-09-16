@@ -14,8 +14,10 @@ export async function POST(request: Request) {
   if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: "OPENAI_API_KEY is not configured." }, { status: 503 });
   const input = await request.json().catch(() => ({})) as ProposalRequest;
   if (!input.venture || !input.outcome?.trim()) return NextResponse.json({ error: "A venture and desired outcome are required." }, { status: 400 });
-  const venture = await prisma.venture.findFirst({ where: { OR: [{ id: input.venture }, { name: input.venture }] }, select: { id: true, name: true } });
-  if (!venture) return NextResponse.json({ error: "Venture not found." }, { status: 404 });
+  const allowedVentures = new Set(["Bubble Leisure", "TripleMMM", "Oddly", "Lucky Studios", "SAYAH", "FireComplianceUK", "Bankole & Associates"]);
+  const existing = await prisma.venture.findFirst({ where: { OR: [{ id: input.venture }, { name: input.venture }] }, select: { id: true, name: true } });
+  if (!existing && !allowedVentures.has(input.venture)) return NextResponse.json({ error: "Venture not found." }, { status: 404 });
+  const venture = existing ?? await prisma.venture.upsert({ where: { name: input.venture }, create: { name: input.venture }, update: {}, select: { id: true, name: true } });
   const skills = await prisma.skill.findMany({ where: { active: true, instructions: { not: null } }, select: { id: true, name: true, description: true, sourceFile: true, sourceVersion: true, instructions: true } });
   if (!skills.length) return NextResponse.json({ error: "No approved imported skills are available. Go to Skills Library, import the Drive ZIPs and approve the skills you want HQ to use." }, { status: 409 });
   const evidence = input.sourceEvidenceIds?.length ? await prisma.intelligenceEvidence.findMany({ where: { id: { in: input.sourceEvidenceIds }, ventureId: venture.id }, select: { id: true, title: true, sourceUrl: true, provenance: true } }) : [];
