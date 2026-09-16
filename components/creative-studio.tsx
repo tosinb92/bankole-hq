@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 type Asset = { id: string; imageUrl: string; prompt: string; revisedPrompt: string; version: number; aspectRatio: string; approvalStatus: string; createdAt: string; action: string; persisted: boolean };
 type VideoJob = { id: string; provider: string; model: string; status: "QUEUED" | "GENERATING" | "PROCESSING" | "COMPLETED" | "FAILED"; providerStatus: string; error?: string };
 type VideoBatch = { provider: string; requestedSeconds: number; jobs: VideoJob[] };
-type IntelligenceHandoff = { venture: string; project: string; skill: string; output: string; sourceEvidence: string };
+type IntelligenceHandoff = { venture: string; project: string; skill: string; output: string; sourceEvidence: string; creationType?: string; creationPreset?: string; workflowExecutionId?: string };
 
 const venturePresets: Record<string, string[]> = {
   "Bubble Leisure": ["Facebook / Instagram ad image", "15s paid-social video", "30s event promo", "Kids-party creative", "Adult-event creative"],
@@ -55,6 +55,10 @@ export default function CreativeStudio() {
     try {
       const handoff = JSON.parse(raw) as IntelligenceHandoff;
       if (handoff.venture && venturePresets[handoff.venture]) setVenture(handoff.venture);
+      if (handoff.creationType && creationTypes.includes(handoff.creationType)) {
+        setCreationType(handoff.creationType);
+        if (handoff.creationType === "Video") setType(handoff.creationPreset || (videoPresets[handoff.venture] ?? ["Custom Video"])[0]);
+      }
       setProject(handoff.project || "Intelligence opportunity");
       setBrief(`${handoff.output}\n\nSOURCE EVIDENCE\n${handoff.sourceEvidence}`);
       setIntelligenceHandoff(handoff);
