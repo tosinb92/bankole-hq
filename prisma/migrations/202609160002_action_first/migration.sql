@@ -42,7 +42,7 @@ CREATE TABLE "Professional" (
 );
 CREATE TABLE "ProfessionalImport" (
   "id" TEXT NOT NULL, "sourceSpreadsheetId" TEXT NOT NULL, "sourceTab" TEXT NOT NULL, "sourceRow" INTEGER, "rawRecord" JSONB NOT NULL,
-  "classification" TEXT, "dedupeKey" TEXT NOT NULL, "importStatus" TEXT NOT NULL DEFAULT 'Pending', "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "professionalId" TEXT, "classification" TEXT, "dedupeKey" TEXT NOT NULL, "importStatus" TEXT NOT NULL DEFAULT 'Pending', "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "ProfessionalImport_pkey" PRIMARY KEY ("id")
 );
 CREATE TABLE "SkillExecution" (
@@ -63,6 +63,7 @@ CREATE INDEX "Action_dealId_idx" ON "Action"("dealId");
 CREATE INDEX "DealCommitment_dealId_dueAt_idx" ON "DealCommitment"("dealId","dueAt");
 CREATE INDEX "Communication_ventureId_status_idx" ON "Communication"("ventureId","status");
 CREATE INDEX "SkillExecution_ventureId_status_idx" ON "SkillExecution"("ventureId","status");
+CREATE INDEX "ProfessionalImport_dedupeKey_idx" ON "ProfessionalImport"("dedupeKey");
 
 ALTER TABLE "Action" ADD CONSTRAINT "Action_ventureId_fkey" FOREIGN KEY ("ventureId") REFERENCES "Venture"("id") ON DELETE CASCADE;
 ALTER TABLE "Action" ADD CONSTRAINT "Action_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "Deal"("id") ON DELETE CASCADE;
@@ -74,6 +75,7 @@ ALTER TABLE "Communication" ADD CONSTRAINT "Communication_dealId_fkey" FOREIGN K
 ALTER TABLE "SkillExecution" ADD CONSTRAINT "SkillExecution_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE RESTRICT;
 ALTER TABLE "SkillExecution" ADD CONSTRAINT "SkillExecution_ventureId_fkey" FOREIGN KEY ("ventureId") REFERENCES "Venture"("id") ON DELETE CASCADE;
 ALTER TABLE "SkillExecution" ADD CONSTRAINT "SkillExecution_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "Deal"("id") ON DELETE CASCADE;
+ALTER TABLE "ProfessionalImport" ADD CONSTRAINT "ProfessionalImport_professionalId_fkey" FOREIGN KEY ("professionalId") REFERENCES "Professional"("id") ON DELETE SET NULL;
 ALTER TABLE "VentureBrandSettings" ADD CONSTRAINT "VentureBrandSettings_ventureId_fkey" FOREIGN KEY ("ventureId") REFERENCES "Venture"("id") ON DELETE CASCADE;
 
 -- Database-side access: financial rows require finance permission or an explicit financial deal assignment.
