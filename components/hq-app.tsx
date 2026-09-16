@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import CreativeStudio from "@/components/creative-studio";
 import { aiJobs, leads, pricingRules as seededRules, skills, venues, ventures } from "@/lib/demo-data";
 import { calculateEntitlement } from "@/lib/entitlement";
 import { PricingRule } from "@/lib/types";
@@ -53,7 +54,7 @@ export default function HQApp() {
     <section className="content"><header><div><p className="eyebrow">TUESDAY, 16 SEPTEMBER · SEEDED DEMONSTRATION DATA</p><h1>{venture ?? view}</h1></div><div className="header-actions"><button className="quiet">⌘ K Search</button><button className="avatar">TB</button></div></header>
       {venture && (venture === "Bankole & Associates" ? <BAOperations/> : venture === "FireComplianceUK" ? <FireOperations/> : <VentureHome name={venture} openBubble={()=>{setVenture(null);setView("Bubble Operations")}}/>)}
       {!venture && view === "Action Centre" && <ActionCentre setView={setView} setVenture={setVenture}/>} 
-      {!venture && view === "Create" && <CreateStudio/>}
+      {!venture && view === "Create" && <CreativeStudio/>}
       {!venture && view === "Command Centre" && <CommandCentre setView={setView} setVenture={setVenture}/>} 
       {!venture && view === "Ventures" && <Ventures setVenture={setVenture}/>} 
       {!venture && view === "Bubble Operations" && <BubbleOps openCall={openCall} setOpenCall={setOpenCall} callResult={callResult} setCallResult={setCallResult}/>} 
