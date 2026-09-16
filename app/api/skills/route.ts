@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { importSkillZip, importSkillsDriveFolder } from "@/lib/server/import-skills";
+import { importSkillTextFiles, importSkillZip, importSkillsDriveFolder } from "@/lib/server/import-skills";
 import { prisma } from "@/lib/server/prisma";
 
 export const runtime = "nodejs";
@@ -19,6 +19,23 @@ export async function POST(request: Request) {
   if (!process.env.DATABASE_URL) return NextResponse.json({ error: "DATABASE_URL is not configured. Skills cannot be persisted." }, { status: 503 });
   try {
     const contentType = request.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      const body = await request.json() as { packages?: Array<{ fileName?: string; sources?: Array<{ path?: string; instructions?: string }> }> };
+      const packages = body.packages ?? [];
+      if (!packages.length) return NextResponse.json({ error: "No extracted SKILL.md instructions were supplied." }, { status: 400 });
+      const results: { fileName: string; skills: string[] }[] = [];
+      for (const item of packages) {
+        const fileName = item.fileName?.trim() || "uploaded-skills.zip";
+        const sources = (item.sources ?? []).flatMap((source) => source.path && source.instructions ? [[source.path, source.instructions] as [string, string]] : []);
+        if (!sources.length) continue;
+        const skills = await importSkillTextFiles({ fileId: `browser-${crypto.randomUUID()}`, fileName, sources });
+        results.push({ fileName, skills });
+      }
+      const imported = results.flatMap((item) => item.skills);
+      if (!imported.length) return NextResponse.json({ error: "No named skills were found. Each SKILL.md needs frontmatter containing a name." }, { status: 400 });
+      return NextResponse.json({ source: "browser-extracted", results, importedCount: imported.length, imported });
+    }
+
     if (contentType.includes("multipart/form-data")) {
       const form = await request.formData();
       const files = form.getAll("files").filter((item): item is File => item instanceof File);
