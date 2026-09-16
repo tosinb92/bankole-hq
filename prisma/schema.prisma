@@ -51,6 +51,60 @@ enum TaskStatus {
   DONE
   BLOCKED
 }
+enum ActionLane {
+  AI_CAN_HANDLE
+  NEEDS_APPROVAL
+  NEEDS_ME
+  WAITING_EXTERNAL
+}
+enum ActionKind {
+  ANALYSE_EMAIL
+  ANALYSE_THREAD
+  DRAFT_REPLY
+  DRAFT_FOLLOW_UP
+  PREPARE_MEETING_BRIEF
+  ANALYSE_AGREEMENT
+  CALCULATE_ENTITLEMENT
+  REVIEW_DOCUMENTS
+  CHASE_COMMITMENT
+  FIND_PROFESSIONAL
+  PREPARE_QUOTE
+  GENERATE_CONTENT
+  RUN_SKILL
+}
+enum CommunicationStatus {
+  DRAFT
+  NEEDS_APPROVAL
+  APPROVED
+  SENT
+  FAILED
+}
+enum EvidenceStatus {
+  PROJECTED
+  CONTRACTUALLY_EVIDENCED
+  EARNED
+  INVOICED
+  PAID
+}
+enum ProfessionalVerification {
+  UNREVIEWED
+  POTENTIAL_MATCH
+  CONTACTED
+  CAPABILITY_CONFIRMED
+  CREDENTIALS_VERIFIED
+  RATE_CONFIRMED
+  AVAILABLE
+  APPROVED_SUPPLIER
+  PREVIOUSLY_USED
+}
+enum SkillExecutionStatus {
+  QUEUED
+  RUNNING
+  NEEDS_APPROVAL
+  COMPLETED
+  FAILED
+  BLOCKED
+}
 
 model User {
   id String @id @default(cuid())
@@ -77,6 +131,10 @@ model Venture {
   revenue RevenueEntry[]
   documents Document[]
   pricingRules PricingRule[]
+  actions Action[]
+  communications Communication[]
+  skillExecutions SkillExecution[]
+  brandSettings VentureBrandSettings?
 }
 model VentureMembership {
   id String @id @default(cuid())
@@ -102,6 +160,11 @@ model Deal {
   sensitiveFinancials Boolean @default(true)
   venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
   assignments DealAssignment[]
+  actions Action[]
+  economics DealEconomics?
+  commitments DealCommitment[]
+  communications Communication[]
+  skillExecutions SkillExecution[]
   createdAt DateTime @default(now())
 }
 model DealAssignment {
@@ -132,6 +195,7 @@ model Contact {
   organisationId String?
   venture Venture? @relation(fields:[ventureId], references:[id])
   organisation Organisation? @relation(fields:[organisationId], references:[id])
+  actions Action[]
   createdAt DateTime @default(now())
 }
 model Lead {
@@ -272,6 +336,7 @@ model Skill {
   sourceUrl String?
   integrationKey String?
   active Boolean @default(false)
+  executions SkillExecution[]
   createdAt DateTime @default(now())
 }
 model Document {
@@ -293,4 +358,145 @@ model RevenueEntry {
   notes String?
   venture Venture @relation(fields:[ventureId],references:[id], onDelete:Cascade)
   createdAt DateTime @default(now())
+}
+model Action {
+  id String @id @default(cuid())
+  ventureId String
+  dealId String?
+  contactId String?
+  title String
+  kind ActionKind
+  lane ActionLane
+  urgency Int @default(3)
+  monetaryRelevance Decimal? @db.Decimal(12,2)
+  recommendation String
+  executionState String @default("Ready")
+  outcome String?
+  requiresIntegration String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  deal Deal? @relation(fields:[dealId], references:[id], onDelete:Cascade)
+  contact Contact? @relation(fields:[contactId], references:[id], onDelete:SetNull)
+  @@index([ventureId, lane])
+  @@index([dealId])
+}
+model DealEconomics {
+  id String @id @default(cuid())
+  dealId String
+  transactionValue Decimal? @db.Decimal(16,2)
+  feeBasis String
+  fixedFee Decimal? @db.Decimal(12,2)
+  percentageFee Decimal? @db.Decimal(7,4)
+  introductionFee Decimal? @db.Decimal(12,2)
+  successFee Decimal? @db.Decimal(12,2)
+  milestoneFees Json?
+  projectedEntitlement Decimal @default(0) @db.Decimal(12,2)
+  evidencedEntitlement Decimal @default(0) @db.Decimal(12,2)
+  earnedAmount Decimal @default(0) @db.Decimal(12,2)
+  invoicedAmount Decimal @default(0) @db.Decimal(12,2)
+  paidAmount Decimal @default(0) @db.Decimal(12,2)
+  expectedPaymentDate DateTime?
+  responsibleCounterparty String?
+  evidenceSource String?
+  evidenceStatus EvidenceStatus @default(PROJECTED)
+  createdAt DateTime @default(now())
+  deal Deal @relation(fields:[dealId], references:[id], onDelete:Cascade)
+  @@unique([dealId])
+}
+model DealCommitment {
+  id String @id @default(cuid())
+  dealId String
+  promisedBy String
+  commitment String
+  dueAt DateTime?
+  evidenceSource String?
+  linkedMilestone String?
+  status String @default("Open")
+  recommendedFollowUp String?
+  createdAt DateTime @default(now())
+  deal Deal @relation(fields:[dealId], references:[id], onDelete:Cascade)
+  @@index([dealId, dueAt])
+}
+model Communication {
+  id String @id @default(cuid())
+  ventureId String
+  dealId String?
+  subject String
+  body String?
+  status CommunicationStatus @default(DRAFT)
+  providerMessageId String?
+  createdAt DateTime @default(now())
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  deal Deal? @relation(fields:[dealId], references:[id], onDelete:Cascade)
+  @@index([ventureId, status])
+}
+model Professional {
+  id String @id @default(cuid())
+  name String
+  company String?
+  role String?
+  email String?
+  phone String?
+  linkedinUrl String?
+  website String?
+  geography String?
+  serviceArea String?
+  capabilities Json?
+  qualifications Json?
+  insuranceDetails String?
+  rates Json?
+  availability String?
+  capacity String?
+  previousJobs Json?
+  qualityNotes String?
+  source String?
+  lastVerifiedAt DateTime?
+  verification ProfessionalVerification @default(UNREVIEWED)
+  createdAt DateTime @default(now())
+}
+model ProfessionalImport {
+  id String @id @default(cuid())
+  sourceSpreadsheetId String
+  sourceTab String
+  sourceRow Int?
+  rawRecord Json
+  classification String?
+  dedupeKey String
+  importStatus String @default("Pending")
+  createdAt DateTime @default(now())
+  @@unique([sourceSpreadsheetId, sourceTab, sourceRow])
+}
+model SkillExecution {
+  id String @id @default(cuid())
+  skillId String
+  ventureId String
+  dealId String?
+  projectRef String?
+  sourceFile String?
+  sourceVersion String?
+  requiredInputs Json?
+  input Json?
+  output Json?
+  status SkillExecutionStatus @default(QUEUED)
+  approvalState String @default("Not required")
+  downstreamActionId String?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  skill Skill @relation(fields:[skillId], references:[id], onDelete:Restrict)
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
+  deal Deal? @relation(fields:[dealId], references:[id], onDelete:Cascade)
+  @@index([ventureId, status])
+}
+model VentureBrandSettings {
+  id String @id @default(cuid())
+  ventureId String @unique
+  logoUrl String?
+  colours Json?
+  typographyPreference String?
+  imagery Json?
+  headerLabel String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  venture Venture @relation(fields:[ventureId], references:[id], onDelete:Cascade)
 }
