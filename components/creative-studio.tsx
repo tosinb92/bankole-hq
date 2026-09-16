@@ -17,8 +17,8 @@ const venturePresets: Record<string, string[]> = {
 
 const videoPresets: Record<string, string[]> = {
   "Bubble Leisure": ["15s Paid-Social Video", "30s Event Promo", "Kids Party Video", "Adult Event Video", "Animate Existing Image", "Custom Video"],
-  Oddly: ["Cinematic Visual", "Trippy Short", "Animate Image", "Custom Video"],
-  SAYAH: ["Music Teaser", "Release Trailer", "Animate Cover / Visual", "Social Clip", "Custom Video"],
+  Oddly: ["Cinematic Visual", "Trippy Short", "Animate Image", "Storyboard Sequence", "Custom Video"],
+  SAYAH: ["Music Teaser", "Release Trailer", "Animate Visual", "Social Clip", "Custom Video"],
   "Lucky Studios": ["Release Visual", "Music Visual", "Campaign Teaser", "Custom Video"],
   TripleMMM: ["Cinematic Interview Teaser", "Founder-Story Promo", "Interview Social Cutdown", "Custom Video"],
 };
@@ -77,7 +77,16 @@ export default function CreativeStudio() {
   const startVideo = async () => {
     setBusy("Generate video"); setError(null);
     try {
-      const referenceImage = assets[0]?.imageUrl;
+      let referenceImage = assets[0]?.imageUrl;
+      // Runway Gen-4.5 is image-to-video. If no Studio asset is selected yet, create
+      // a real reference frame server-side first instead of pretending text-only video works.
+      if (!referenceImage) {
+        const imageResponse = await fetch("/api/creative/generate-image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ venture, project, source: brief, prompt: visualPrompt, aspectRatio: ratio, action: "Generate Storyboard Frame for Video" }) });
+        const imageData = await imageResponse.json() as { asset?: Asset; error?: string };
+        if (!imageResponse.ok || !imageData.asset) throw new Error(imageData.error ?? "A Runway reference image could not be created.");
+        referenceImage = imageData.asset.imageUrl;
+        setAssets(current => [{ ...imageData.asset!, version: current.length + 1 }, ...current]);
+      }
       const response = await fetch("/api/creative/video", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider: "runway", prompt: `${visualPrompt} Motion direction: gentle cinematic push-in, authentic subject action, controlled pacing, no text or logos.`, aspectRatio: ratio === "landscape" ? "landscape" : "portrait", durationSeconds: type.includes("15s") ? 15 : 5, ...(referenceImage ? { referenceImage } : {}) }) });
       const data = await response.json() as VideoBatch & { error?: string };
       if (!response.ok || !data.jobs?.length) throw new Error(data.error ?? "Runway video generation failed to start.");
