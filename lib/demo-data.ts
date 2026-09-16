@@ -24,7 +24,8 @@ export const venues: {name:string; postcode:string; activities:string; capacity:
   {name:"St Mark's Community Hall",postcode:"CO1 2QW",activities:"Nerf, Archery",capacity:"50",price:65,unit:"per session",status:"Historical",availability:"Check required",verified:"14 Aug 2026",contact:"01206 555 002",method:"Phone"},
   {name:"Lakeside Pavilion",postcode:"CO2 8WZ",activities:"Bubble, Dodgeball",capacity:"30",price:95,unit:"per booking",status:"Estimated",availability:"Unknown",verified:"—",contact:"—",method:"Website form"}
 ];
-export const aiJobs: {title:string; venture:string; skill:string; status:AiStatus; updated:string}[] = [
+export const aiJobs: {title:string; venture:string; skill:string; status:AiStatus; updated:string; input?:string; output?:string; source?:string}[] = [
+  {title:"Repurpose safe internal operating insight",venture:"Lucky Studios",skill:"content-repurposing",status:"Needs Approval",updated:"Just now",source:"content-repurposing.zip · SKILL.md",input:"Original safe demo: ‘An action-first operating system turns a vague priority into an assigned next step, evidence and an approval state.’",output:"LinkedIn draft: Dashboards show you work. An operating system tells you what moves next. Every priority needs an owner, evidence, a next step and a decision state. That is how work stops being visible and starts becoming executable.\n\nShort-form script: If your dashboard cannot tell you who acts next, it is decoration. Turn every priority into an owner, proof, a next step and an approval state."},
   {title:"Extract party requirements",venture:"Bubble Leisure",skill:"Requirements Extractor",status:"Completed",updated:"8 min ago"},
   {title:"Rank Colchester venues",venture:"Bubble Leisure",skill:"Venue Agent",status:"Needs Approval",updated:"12 min ago"},
   {title:"Draft school quote",venture:"Bubble Leisure",skill:"Quote Composer",status:"Queued",updated:"Now"},
