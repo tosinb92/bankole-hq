@@ -10,7 +10,7 @@ import { aiJobs, leads, pricingRules as seededRules, skills, venues, ventures } 
 import { calculateEntitlement } from "@/lib/entitlement";
 import { PricingRule } from "@/lib/types";
 
-const nav = ["Ask HQ", "Create", "Action Centre", "Command Centre", "Ventures", "AI Workforce", "Intelligence", "Contacts & Orgs", "Tasks", "Documents", "Revenue", "Skills Library", "Astra Control"];
+const nav = ["Home", "Ask HQ", "Ventures", "Intelligence", "Create", "Operations"];
 const creationTypes = ["Ad", "Short-form video script", "Long-form content", "Carousel", "Presentation", "Campaign", "Email / outreach message", "Content repurposing", "YouTube packaging", "Creative brief", "Video concept / storyboard"];
 const creationPresets: Record<string,string[]> = {
   "Bubble Leisure":["Create paid-social ad","Create parent-focused post","Create promo script","Create offer angle"],
@@ -33,7 +33,7 @@ const ventureModels: Record<string,{eyebrow:string;headline:string;metrics:[stri
 const money = (n: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(n);
 
 export default function HQApp() {
-  const [view, setView] = useState("Action Centre");
+  const [view, setView] = useState("Home");
   const [venture, setVenture] = useState<string | null>(null);
   const [rules, setRules] = useState<PricingRule[]>(seededRules);
   const [selectedRule, setSelectedRule] = useState("combo-90");
@@ -58,19 +58,19 @@ export default function HQApp() {
     </aside>
     <section className="content"><header><div><p className="eyebrow">TUESDAY, 16 SEPTEMBER · SEEDED DEMONSTRATION DATA</p><h1>{venture ?? view}</h1></div><div className="header-actions"><button className="quiet">⌘ K Search</button><button className="avatar">TB</button></div></header>
       {venture && (venture === "Bankole & Associates" ? <BAOperations/> : venture === "FireComplianceUK" ? <FireOperations/> : venture === "Brilliant AI Automation" ? <BAAOperations/> : <VentureHome name={venture} openBubble={()=>{setVenture(null);setView("Bubble Operations")}}/>)}
-      {!venture && view === "Action Centre" && <ActionCentre setView={setView} setVenture={setVenture}/>} 
+      {!venture && view === "Home" && <ActionCentre setView={setView} setVenture={setVenture}/>} 
       {!venture && view === "Ask HQ" && <AskHQ openCreate={() => setView("Create")}/>}
       {!venture && view === "Create" && <CreativeStudio/>}
-      {!venture && view === "Command Centre" && <CommandCentre setView={setView} setVenture={setVenture}/>} 
+       
       {!venture && view === "Ventures" && <Ventures setVenture={setVenture}/>} 
       {!venture && view === "Bubble Operations" && <BubbleOps openCall={openCall} setOpenCall={setOpenCall} callResult={callResult} setCallResult={setCallResult}/>} 
-      {!venture && view === "Tasks" && <Tasks/>}
-      {!venture && view === "AI Workforce" && <AiJobs/>}
-      {!venture && view === "Skills Library" && <SkillsLibrary openCreate={() => setView("Create")} openIntelligence={() => setView("Intelligence")}/>} 
-      {!venture && view === "Contacts & Orgs" && <Contacts/>}
-      {!venture && view === "Documents" && <Documents/>}
-      {!venture && view === "Revenue" && <Revenue/>}
-      {!venture && view === "Intelligence" && <IntelligenceStudio setView={setView}/>}\n      {!venture && view === "Astra Control" && <AstraControl/>}
+      
+      
+       
+      
+      
+      
+      {!venture && view === "Intelligence" && <IntelligenceStudio setView={setView}/>}\n      {!venture && view === "Operations" && <OperationsHub setView={setView}/>}\n      
       {!venture && view === "Bubble Operations" && <section className="split lower"><PricingEngine rules={rules} rule={rule} selectRule={setSelectedRule} venueCost={venueCost} setVenueCost={setVenueCost} travel={travel} setTravel={setTravel} calc={calculation}/><PricingRules rules={rules} toggle={toggleRule}/></section>}
     </section>
   </main>;
@@ -113,3 +113,5 @@ function Skills(){return <><section className="exec-hero"><div><p className="eye
 function Contacts(){return <section className="panel"><PanelTitle title="Contacts & organisations" action="+ Contact"/><div className="empty">No imported contacts yet. Use this area for customers, venue managers, suppliers, partners and investors; links to ventures and deals are relational in the database schema.</div></section>}
 function Documents(){return <section className="panel"><PanelTitle title="Documents" action="+ Upload"/><div className="empty">Document storage is ready in the data model. Connect Google Drive or secure object storage later; no Drive files were invented or copied into V0.1.</div></section>}
 function Revenue(){return <><section className="metric-grid"><Metric label="Received this month" value="£2,480" hint="Demonstration data" tone="lime"/><Metric label="Expected pipeline" value="£2,650" hint="Open opportunities" tone="blue"/><Metric label="Estimated gross profit" value="£1,228" hint="Quoted Bubble work" tone="purple"/></section><section className="panel"><PanelTitle title="Revenue tracking" action="+ Entry"/><div className="empty">Revenue entries will be stored per venture, separated into income and direct costs. Demonstration figures are shown until a database is connected.</div></section></>}
+
+function OperationsHub({setView}:{setView:(v:string)=>void}){const [section,setSection]=useState("Revenue");const items=["Revenue","Contacts","Tasks","Documents","AI Workforce","Capabilities","Connections"];return <><section className="exec-hero"><div><p className="eyebrow">OPERATIONS · SUPPORTING SYSTEMS</p><h2>The machinery is here when you need it—not in your way.</h2><p>Use Ask HQ for normal work. Operations is for inspecting revenue, records, jobs, capabilities and connections.</p></div></section><nav className="intel-tabs">{items.map(x=><button key={x} className={section===x?"active":""} onClick={()=>setSection(x)}>{x}</button>)}</nav>{section==="Revenue"&&<Revenue/>}{section==="Contacts"&&<Contacts/>}{section==="Tasks"&&<Tasks/>}{section==="Documents"&&<Documents/>}{section==="AI Workforce"&&<AiJobs/>}{section==="Capabilities"&&<SkillsLibrary openCreate={()=>setView("Create")} openIntelligence={()=>setView("Intelligence")}/>} {section==="Connections"&&<AstraControl/>}</>}
