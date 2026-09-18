@@ -1,7 +1,7 @@
 import { AiStatus, PricingRule, Stage, VenueStatus } from "./types";
 
 export const ventures = [
-  ["Bubble Leisure", "Events", "Active", "12 open leads"], ["Bankole & Associates", "Advisory", "Active", "3 live mandates"], ["TradeCompare", "SaaS", "Build", "Data strategy"], ["FireComplianceUK", "Marketplace", "Active", "5 inspectors"], ["Lucky Studios", "AI studio", "Build", "SAYAH launch"], ["SAYAH", "Music IP", "Active", "Release prep"], ["Oddly", "Creative studio", "Build", "Visual concepts"]
+  ["Bubble Leisure", "Events", "Active", "12 open leads"], ["Bankole & Associates", "Advisory", "Active", "3 live mandates"], ["Brilliant AI Automation", "AI automation", "Active", "3 opportunities"], ["TradeCompare", "SaaS", "Build", "Data strategy"], ["FireComplianceUK", "Marketplace", "Active", "5 inspectors"], ["Lucky Studios", "AI studio", "Build", "SAYAH launch"], ["SAYAH", "Music IP", "Active", "Release prep"], ["Oddly", "Creative studio", "Build", "Visual concepts"]
 ];
 export const pricingRules: PricingRule[] = [
   { id:"kids-60", name:"Kids core 60", activity:"Bubble Football", customerType:"Kids", duration:60, min:250, max:250, staffing:85, equipment:35, minMargin:45, active:true },
