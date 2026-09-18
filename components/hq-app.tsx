@@ -5,11 +5,12 @@ import CreativeStudio from "@/components/creative-studio";
 import AskHQ from "@/components/ask-hq";
 import IntelligenceStudio from "@/components/intelligence-studio";
 import SkillsLibrary from "@/components/skills-library";
+import AstraControl from "@/components/astra-control";
 import { aiJobs, leads, pricingRules as seededRules, skills, venues, ventures } from "@/lib/demo-data";
 import { calculateEntitlement } from "@/lib/entitlement";
 import { PricingRule } from "@/lib/types";
 
-const nav = ["Ask HQ", "Create", "Action Centre", "Command Centre", "Ventures", "AI Workforce", "Intelligence", "Contacts & Orgs", "Tasks", "Documents", "Revenue", "Skills Library"];
+const nav = ["Ask HQ", "Create", "Action Centre", "Command Centre", "Ventures", "AI Workforce", "Intelligence", "Contacts & Orgs", "Tasks", "Documents", "Revenue", "Skills Library", "Astra Control"];
 const creationTypes = ["Ad", "Short-form video script", "Long-form content", "Carousel", "Presentation", "Campaign", "Email / outreach message", "Content repurposing", "YouTube packaging", "Creative brief", "Video concept / storyboard"];
 const creationPresets: Record<string,string[]> = {
   "Bubble Leisure":["Create paid-social ad","Create parent-focused post","Create promo script","Create offer angle"],
@@ -69,7 +70,7 @@ export default function HQApp() {
       {!venture && view === "Contacts & Orgs" && <Contacts/>}
       {!venture && view === "Documents" && <Documents/>}
       {!venture && view === "Revenue" && <Revenue/>}
-      {!venture && view === "Intelligence" && <IntelligenceStudio setView={setView}/>}
+      {!venture && view === "Intelligence" && <IntelligenceStudio setView={setView}/>}\n      {!venture && view === "Astra Control" && <AstraControl/>}
       {!venture && view === "Bubble Operations" && <section className="split lower"><PricingEngine rules={rules} rule={rule} selectRule={setSelectedRule} venueCost={venueCost} setVenueCost={setVenueCost} travel={travel} setTravel={setTravel} calc={calculation}/><PricingRules rules={rules} toggle={toggleRule}/></section>}
     </section>
   </main>;
