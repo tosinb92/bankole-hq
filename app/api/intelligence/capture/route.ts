@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   const host = source.hostname.toLowerCase().replace(/\.$/, "");
   if (source.protocol !== "https:" || !isAllowedHost(host)) return NextResponse.json({ error: "Research Inbox currently accepts public Instagram, Facebook, YouTube and TikTok HTTPS links only." }, { status: 400 });
 
-  const allowedVentures = new Set(["Bubble Leisure", "TripleMMM", "Oddly", "Lucky Studios", "SAYAH", "FireComplianceUK", "Bankole & Associates"]);
+  const allowedVentures = new Set(["Bubble Leisure","TripleMMM","Oddly","Lucky Studios","SAYAH","FireComplianceUK","Bankole & Associates","Brilliant AI Automation","TradeCompare","TWYN"]);
   if (!allowedVentures.has(body.venture)) return NextResponse.json({ error: "Venture not found." }, { status: 404 });
   const venture = await prisma.venture.upsert({ where: { name: body.venture }, create: { name: body.venture }, update: {} });
 
