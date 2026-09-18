@@ -1,26 +1,7 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/server/prisma";
-
-export const runtime = "nodejs";
-
-const BUBBLE_LEISURE_STARTERS = [
-  ["Bubble Boy Events", "https://www.bubbleboyevents.co.uk/"],
-  ["Bubble Football / Excel Activity Group", "https://www.bubble-football.co.uk/"],
-  ["London Bubble Football", "https://londonbubblefootball.co.uk/"],
-  ["Bubble Soccer World", "https://www.bubblesoccerworld.com/"],
-  ["Absolute Bubble Football", "https://absolutebubblefootball.co.uk/"],
-  ["Bubble Footie", "https://www.bubblefootie.co.uk/"],
-] as const;
-
-export async function POST(request: Request) {
-  if (!process.env.DATABASE_URL) return NextResponse.json({ error: "DATABASE_URL is not configured. Competitors cannot be saved." }, { status: 503 });
-  const body = await request.json().catch(() => ({})) as { venture?: string };
-  const venture = await prisma.venture.findFirst({ where: { OR: [{ id: body.venture }, { name: body.venture ?? "Bubble Leisure" }] }, select: { id: true, name: true } });
-  if (!venture || venture.name !== "Bubble Leisure") return NextResponse.json({ error: "The Bubble Leisure venture is required." }, { status: 404 });
-  const competitors = await Promise.all(BUBBLE_LEISURE_STARTERS.map(([name, websiteUrl]) => prisma.competitor.upsert({
-    where: { ventureId_name: { ventureId: venture.id, name } },
-    update: { websiteUrl },
-    create: { ventureId: venture.id, name, websiteUrl },
-  })));
-  return NextResponse.json({ competitors, notice: "Saved public website sources only. No ads or performance data has been claimed." });
-}
+import { NextResponse } from "next/server";import { prisma } from "@/lib/server/prisma";export const runtime="nodejs";
+const STARTERS:Record<string,readonly (readonly [string,string])[]>={
+"Bubble Leisure":[["Excel Activity Group / Bubble Football","https://www.bubble-football.co.uk/"],["Bubble Soccer World","https://www.bubblesoccerworld.com/"],["ZORB Football UK","https://www.zorbfootballuk.com/"],["Football Zorbing","https://www.footballzorbing.co.uk/"]],
+"FireComplianceUK":[["Fire Door Inspection Scheme (FDIS)","https://fdis.co.uk/"],["Affiliation of Fire Door Inspectors","https://afdi.org.uk/"]],
+"TradeCompare":[["Pleo","https://www.pleo.io/en"],["Spendesk","https://www.spendesk.com/"],["Payhawk","https://payhawk.com/"],["Dext","https://dext.com/"]]
+};
+export async function POST(request:Request){if(!process.env.DATABASE_URL)return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});const body=await request.json().catch(()=>({})) as {venture?:string};const name=body.venture||"";const venture=await prisma.venture.findFirst({where:{OR:[{id:name},{name}]},select:{id:true,name:true}});if(!venture)return NextResponse.json({error:"Venture not found."},{status:404});const sources=STARTERS[venture.name]||[];if(!sources.length)return NextResponse.json({competitors:[],notice:"No verified starter set is stored for this venture yet. Add named competitors or public social links; HQ will not invent them."});const competitors=await Promise.all(sources.map(([competitorName,websiteUrl])=>prisma.competitor.upsert({where:{ventureId_name:{ventureId:venture.id,name:competitorName}},update:{websiteUrl},create:{ventureId:venture.id,name:competitorName,websiteUrl}})));return NextResponse.json({competitors,notice:`Added ${competitors.length} public competitor/reference sources for ${venture.name}. Collect them to create evidence.`});}
