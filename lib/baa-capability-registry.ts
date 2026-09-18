@@ -1,0 +1,14 @@
+export type BAACapability={id:string;name:string;category:string;bankoleHQ:boolean;clientDefault:boolean;description:string;proofEvents:string[]};
+
+export const baaCapabilities:BAACapability[]=[
+{id:"company-brain",name:"Company Brain",category:"Knowledge",bankoleHQ:true,clientDefault:true,description:"Permission-aware company knowledge for workflows, decisions and grounded assistance.",proofEvents:["source_added","fact_used","workflow_informed"]},
+{id:"legal-intelligence",name:"Legal Intelligence",category:"Legal",bankoleHQ:true,clientDefault:false,description:"Contract and document review, obligation and deadline extraction, clause comparison, approved-template drafting, legal research assistance and escalation to qualified counsel where legal judgement is required.",proofEvents:["document_reviewed","obligation_extracted","deadline_detected","clause_compared","legal_escalation"]},
+{id:"sales-intelligence",name:"Sales Intelligence",category:"Revenue",bankoleHQ:true,clientDefault:true,description:"Signal-led prospect research, qualification, decision-maker mapping, offer preparation and commercial next actions.",proofEvents:["signal_detected","opportunity_created","outreach_sent","meeting_booked","proposal_issued","invoice_issued","payment_verified"]},
+{id:"competitor-intelligence",name:"Competitor Intelligence",category:"Intelligence",bankoleHQ:true,clientDefault:false,description:"Evidence-backed monitoring and analysis of public competitor activity.",proofEvents:["evidence_captured","change_detected","opportunity_created"]},
+{id:"workflow-automation",name:"Workflow Automation",category:"Operations",bankoleHQ:true,clientDefault:true,description:"Trigger, action, approval and exception workflows with auditable execution.",proofEvents:["workflow_started","ai_step_completed","approval_requested","human_intervention","workflow_completed"]},
+{id:"document-intelligence",name:"Document Intelligence",category:"Knowledge",bankoleHQ:true,clientDefault:true,description:"Extract, classify, compare and route operational information from business documents.",proofEvents:["document_processed","field_extracted","exception_flagged"]},
+{id:"customer-support-intelligence",name:"Customer Support Intelligence",category:"Customer",bankoleHQ:true,clientDefault:false,description:"Triage, response assistance, follow-up, knowledge retrieval and escalation while retaining human control.",proofEvents:["case_triaged","response_prepared","follow_up_completed","case_escalated"]},
+{id:"baa-assistance",name:"BAA Assistance",category:"Support",bankoleHQ:true,clientDefault:false,description:"System-specific AI assistance grounded in the deployed BAA configuration, documentation, integrations and diagnostics.",proofEvents:["assistance_session","issue_diagnosed","technical_escalation"]}
+];
+
+export const bankoleHQCapabilities=baaCapabilities.filter(c=>c.bankoleHQ);
