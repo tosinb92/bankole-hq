@@ -66,7 +66,7 @@ export default function HQApp() {
       {!venture && view === "Bubble Operations" && <BubbleOps openCall={openCall} setOpenCall={setOpenCall} callResult={callResult} setCallResult={setCallResult}/>} 
       {!venture && view === "Tasks" && <Tasks/>}
       {!venture && view === "AI Workforce" && <AiJobs/>}
-      {!venture && view === "Skills Library" && <SkillsLibrary openCreate={() => setView("Create")}/>} 
+      {!venture && view === "Skills Library" && <SkillsLibrary openCreate={() => setView("Create")} openIntelligence={() => setView("Intelligence")}/>} 
       {!venture && view === "Contacts & Orgs" && <Contacts/>}
       {!venture && view === "Documents" && <Documents/>}
       {!venture && view === "Revenue" && <Revenue/>}
