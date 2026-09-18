@@ -11,7 +11,9 @@ type ImportedSkill = { id: string; name: string; active: boolean };
 const tabs = ["Competitor Dashboard", "Competitor Overview", "Paid Ads", "Organic Content", "Top Creatives", "Repeated / Long-running", "Hooks", "Offers", "Formats", "Emerging Themes", "Recent Changes", "Content Gaps", "Opportunities"];
 
 export default function IntelligenceStudio({ setView }: { setView: (view: string) => void }) {
-  const ventureOptions=["Bubble Leisure","Brilliant AI Automation","FireComplianceUK","Bankole & Associates","TradeCompare","Lucky Studios","SAYAH","Oddly","TripleMMM"];\n  const [venture,setVenture]=useState("Bubble Leisure");\n  const [ventureId,setVentureId]=useState("");
+  const ventureOptions=["Bubble Leisure","Brilliant AI Automation","FireComplianceUK","Bankole & Associates","TradeCompare","Lucky Studios","SAYAH","Oddly","TripleMMM"];
+  const [venture,setVenture]=useState("Bubble Leisure");
+  const [ventureId,setVentureId]=useState("");
   const [tab, setTab] = useState("Competitor Dashboard");
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [evidence, setEvidence] = useState<Evidence[]>([]);
