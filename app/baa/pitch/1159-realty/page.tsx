@@ -1,0 +1,24 @@
+export default function Pitch1159(){
+  const steps=["Enquiry captured","Qualification","Viewing / site inspection","Documentation checklist","Payment-plan follow-up","Human escalation","Post-sale care"];
+  return <main style={{minHeight:"100vh",background:"#07111f",color:"#f7f9fc",fontFamily:"Arial, sans-serif",padding:"48px 24px"}}>
+    <div style={{maxWidth:1080,margin:"0 auto"}}>
+      <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:24,marginBottom:56}}>
+        <div><div style={{fontSize:13,letterSpacing:2,color:"#9fb1c7"}}>BRILLIANT AI AUTOMATION · CLIENT WORKFLOW AUDIT</div><h1 style={{fontSize:44,lineHeight:1.05,margin:"12px 0 8px"}}>1159 Realty Customer Success Automation Pilot</h1><p style={{fontSize:18,color:"#b8c5d6",maxWidth:760}}>A practical operating layer for handling enquiries, documentation, payment-plan follow-up and post-sale customer care without removing the human relationship.</p></div>
+        <div style={{border:"1px solid #31445d",borderRadius:18,padding:"18px 22px",minWidth:180}}><b>Prepared by BAA</b><div style={{color:"#9fb1c7",marginTop:6}}>Brilliant AI Automation</div></div>
+      </header>
+      <section style={{display:"grid",gridTemplateColumns:"1.1fr .9fr",gap:18,marginBottom:18}}>
+        <div style={{background:"#0d1b2d",border:"1px solid #243850",borderRadius:22,padding:30}}><div style={{color:"#7fd3ff",fontSize:13,fontWeight:700}}>THE OPPORTUNITY</div><h2 style={{fontSize:28}}>Customer Success is carrying repetitive coordination.</h2><p style={{color:"#c1ccda",lineHeight:1.7}}>1159's customer journey spans WhatsApp, email and phone enquiries, property qualification, documentation, instalment/payment follow-up and post-sale support. BAA can organise those repetitive handoffs into one controlled workflow while staff retain judgement and customer relationships.</p></div>
+        <div style={{background:"#e9ffb5",color:"#0a1522",borderRadius:22,padding:30}}><div style={{fontSize:13,fontWeight:700}}>PILOT OBJECTIVE</div><h2 style={{fontSize:28}}>Make every enquiry easier to move forward.</h2><p style={{lineHeight:1.65}}>Pilot one live enquiry-to-closing journey, automate the highest-friction follow-up/checklist steps, and give management visibility into what is waiting, overdue or needs a person.</p></div>
+      </section>
+      <section style={{background:"#0d1b2d",border:"1px solid #243850",borderRadius:22,padding:30,marginBottom:18}}><div style={{color:"#b99cff",fontSize:13,fontWeight:700}}>PROPOSED BAA WORKFLOW</div><div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:10,marginTop:20}}>{steps.map((s,i)=><span key={s} style={{display:"contents"}}><span style={{background:"#14263b",border:"1px solid #304963",borderRadius:999,padding:"12px 16px",fontWeight:700}}>{s}</span>{i<steps.length-1&&<span style={{color:"#7890aa"}}>→</span>}</span>)}</div></section>
+      <section style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:18,marginBottom:18}}>
+        {[["01","Fewer lost follow-ups","Create a clear queue for outstanding enquiries, documents and customer actions."],["02","Less repetitive admin","Automate reminders, checklists and routine routing around the tools the team already uses."],["03","Better management visibility","See which customers are progressing, stalled, overdue or need human escalation."]].map(x=><div key={x[0]} style={{background:"#0d1b2d",border:"1px solid #243850",borderRadius:22,padding:26}}><div style={{color:"#7fd3ff",fontWeight:800}}>{x[0]}</div><h3 style={{fontSize:21}}>{x[1]}</h3><p style={{color:"#b8c5d6",lineHeight:1.6}}>{x[2]}</p></div>)}
+      </section>
+      <section style={{background:"#f7f9fc",color:"#0a1522",borderRadius:22,padding:34,display:"flex",justifyContent:"space-between",gap:30,alignItems:"center"}}>
+        <div><div style={{fontSize:13,fontWeight:800}}>RECOMMENDED FIRST STEP</div><h2 style={{fontSize:30,margin:"8px 0"}}>Customer Success Automation Pilot</h2><p style={{maxWidth:700,lineHeight:1.6}}>A focused implementation around one live workflow. Indicative pilot from £1,500, with broader implementation scoped only after the pilot demonstrates value.</p><small>Indicative scope and pricing subject to discovery and confirmation of existing systems.</small></div>
+        <div style={{background:"#0a1522",color:"white",borderRadius:18,padding:"20px 24px",minWidth:220}}><b style={{fontSize:20}}>20-minute workflow call</b><p style={{color:"#c1ccda"}}>Confirm the current process, choose the pilot workflow and identify the first measurable outcome.</p></div>
+      </section>
+      <footer style={{display:"flex",justifyContent:"space-between",color:"#8295ac",fontSize:13,marginTop:24}}><span>Brilliant AI Automation</span><span>brilliantaiautomation.com</span></footer>
+    </div>
+  </main>
+}
