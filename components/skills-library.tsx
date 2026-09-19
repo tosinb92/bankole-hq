@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";\nimport {ventureSkillProfiles} from "@/lib/venture-skill-profiles";
+import { useEffect, useState } from "react";
+import {ventureSkillProfiles} from "@/lib/venture-skill-profiles";
 
 type Skill = { id: string; name: string; description?: string | null; active: boolean; sourceFile?: string | null; sourceVersion?: string | null; source?: { zipFileName?: string; sourcePath?: string; sourceUrl?: string } | null; _count?: { executions: number; intelligenceRuns: number } };
 
