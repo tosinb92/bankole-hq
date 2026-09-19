@@ -7,6 +7,7 @@ import IntelligenceStudio from "@/components/intelligence-studio";
 import SkillsLibrary from "@/components/skills-library";
 import AstraControl from "@/components/astra-control";
 import ContentBank from "@/components/content-bank";
+import TodayDashboard from "@/components/today-dashboard";
 import { aiJobs, leads, pricingRules as seededRules, skills, venues, ventures } from "@/lib/demo-data";
 import { calculateEntitlement } from "@/lib/entitlement";
 import { PricingRule } from "@/lib/types";
@@ -59,7 +60,7 @@ export default function HQApp() {
     </aside>
     <section className="content"><header><div><p className="eyebrow">TUESDAY, 16 SEPTEMBER · SEEDED DEMONSTRATION DATA</p><h1>{venture ?? view}</h1></div><div className="header-actions"><button className="quiet">⌘ K Search</button><button className="avatar">TB</button></div></header>
       {venture && (venture === "Bankole & Associates" ? <BAOperations/> : venture === "FireComplianceUK" ? <FireOperations/> : venture === "Brilliant AI Automation" ? <BAAOperations/> : <VentureHome name={venture} openBubble={()=>{setVenture(null);setView("Bubble Operations")}}/>)}
-      {!venture && view === "Today" && <><AskHQ openCreate={() => setView("Create")}/><ActionCentre setView={setView} setVenture={setVenture}/></>}
+      {!venture && view === "Today" && <><TodayDashboard openBusiness={setVenture} openCreate={() => setView("Create")} openIntelligence={() => setView("Intelligence")}/><AskHQ openCreate={() => setView("Create")}/></>}
       {!venture && view === "Create" && <><ContentBank/><CreativeStudio/></>}
        
       {!venture && view === "Businesses" && <Ventures setVenture={setVenture}/>} 
