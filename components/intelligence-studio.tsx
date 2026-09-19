@@ -6,7 +6,8 @@ type Competitor = { id: string; name: string; websiteUrl?: string | null; lastCo
 type Evidence = { id: string; competitorName: string; platform: string; distribution: string; title: string; sourceUrl?: string | null; mediaUrl?: string | null; contentText?: string | null; activityStatus?: string | null; capturedAt: string; provenance: string };
 type Opportunity = { id: string; title: string; brief: string; status: string; createdAt: string };
 type SkillRun = { id: string; output: string; evidence: Array<{ id: string; title: string; sourceUrl?: string | null; provenance: string }> };
-type ImportedSkill = { id: string; name: string; active: boolean };\ntype OwnedPost = { id:string; caption:string; permalink?:string|null; mediaType:string; mediaUrl?:string|null; timestamp?:string|null; likes:number; comments:number; reach:number; saves:number; shares:number; views:number; avgWatchMs?:number|null; skipRate?:number|null };
+type ImportedSkill = { id: string; name: string; active: boolean };
+type OwnedPost = { id:string; caption:string; permalink?:string|null; mediaType:string; mediaUrl?:string|null; timestamp?:string|null; likes:number; comments:number; reach:number; saves:number; shares:number; views:number; avgWatchMs?:number|null; skipRate?:number|null };
 
 const tabs = ["Overview", "Your Content", "Competitors"];
 
@@ -27,7 +28,9 @@ export default function IntelligenceStudio({ setView }: { setView: (view: string
   const [capture, setCapture] = useState({ url: "", note: "", interaction: "SAVED", distribution: "ORGANIC" });
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);\n  const [ownedPosts,setOwnedPosts]=useState<OwnedPost[]>([]);\n  const [ownedStatus,setOwnedStatus]=useState("Loading owned content…");
+  const [error, setError] = useState<string | null>(null);
+  const [ownedPosts,setOwnedPosts]=useState<OwnedPost[]>([]);
+  const [ownedStatus,setOwnedStatus]=useState("Loading owned content…");
 
   const load = async () => {
     setError(null);
@@ -38,7 +41,8 @@ export default function IntelligenceStudio({ setView }: { setView: (view: string
     const skillResponse = await fetch("/api/skills", { cache: "no-store" });
     if (skillResponse.ok) { const skillData = await skillResponse.json() as { skills?: ImportedSkill[] }; setSkills(skillData.skills ?? []); }
   };
-  useEffect(() => { void load(); }, [venture]);\n  useEffect(()=>{ let live=true; setOwnedPosts([]); setOwnedStatus("Loading owned content…"); fetch(`/api/integrations/instagram?venture=${encodeURIComponent(venture)}`,{cache:"no-store"}).then(async r=>({ok:r.ok,data:await r.json()})).then(({ok,data})=>{if(!live)return;setOwnedPosts(ok?(data.posts??[]):[]);setOwnedStatus(data.connected?`${data.account} · live Instagram data`:data.message??"Not connected");}).catch(()=>live&&setOwnedStatus("Owned social data unavailable")); return()=>{live=false}; },[venture]);
+  useEffect(() => { void load(); }, [venture]);
+  useEffect(()=>{ let live=true; setOwnedPosts([]); setOwnedStatus("Loading owned content…"); fetch(`/api/integrations/instagram?venture=${encodeURIComponent(venture)}`,{cache:"no-store"}).then(async r=>({ok:r.ok,data:await r.json()})).then(({ok,data})=>{if(!live)return;setOwnedPosts(ok?(data.posts??[]):[]);setOwnedStatus(data.connected?`${data.account} · live Instagram data`:data.message??"Not connected");}).catch(()=>live&&setOwnedStatus("Owned social data unavailable")); return()=>{live=false}; },[venture]);
   const filtered = useMemo(() => evidence.filter(item => tab === "Inspiration" ? item.competitorName === "Manual capture" || item.activityStatus === "SAVED" : true), [evidence, tab]);
   const toggle = (id: string) => setSelected(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
   const captureSocial = async () => {
