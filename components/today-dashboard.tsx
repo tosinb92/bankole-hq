@@ -1,6 +1,6 @@
 "use client";
 
-type Props={openBusiness:(name:string)=>void;openCreate:()=>void;openIntelligence:()=>void};
+type Props={openBusiness:(name:string)=>void;openCreate:(brand?:string,objective?:string)=>void;openIntelligence:()=>void};
 
 const priorities=[
  {business:"Bubble Leisure",goal:"Get bookings",signal:"Content + lead conversion",action:"Build this week's booking campaign",why:"Create the offer, posts and production plan around enquiries and bookings.",cta:"Create campaign",kind:"create"},
@@ -10,8 +10,8 @@ const priorities=[
 ];
 
 export default function TodayDashboard({openBusiness,openCreate,openIntelligence}:Props){
- const act=(p:(typeof priorities)[number])=>p.kind==="create"?openCreate():p.kind==="intel"?openIntelligence():openBusiness(p.business);
- return <><section className="exec-hero"><div><p className="eyebrow">TODAY · OUTCOMES FIRST</p><h2>What should move forward today?</h2><p>HQ should turn your goals, business data, intelligence and Skills into the next useful action. The tools stay underneath; you work from outcomes.</p></div><button className="primary" onClick={openCreate}>Create something →</button></section>
+ const act=(p:(typeof priorities)[number])=>p.kind==="create"?openCreate(p.business,p.goal==="Get bookings"?"Create a conversion-focused weekly campaign designed to generate qualified enquiries and bookings.":"Create the next 10 audience-growth concepts using available performance evidence and clearly identify where competitor evidence is still missing."):p.kind==="intel"?openIntelligence():openBusiness(p.business);
+ return <><section className="exec-hero"><div><p className="eyebrow">TODAY · OUTCOMES FIRST</p><h2>What should move forward today?</h2><p>HQ should turn your goals, business data, intelligence and Skills into the next useful action. The tools stay underneath; you work from outcomes.</p></div><button className="primary" onClick={()=>openCreate()}>Create something →</button></section>
  <section className="metric-grid"><Metric label="Businesses needing action" value="4" hint="Prioritised below"/><Metric label="Content engine" value="Live" hint="Outcome-led generation"/><Metric label="Intelligence loop" value="Building" hint="Owned + competitor evidence"/><Metric label="Execution rule" value="Approve" hint="You remain in control"/></section>
  <section className="panel wide"><div className="panel-title"><h2>Your priority queue</h2><span>Goal → evidence → recommendation → action → result</span></div>
  <div style={{display:"grid",gap:12}}>{priorities.map(p=><article key={p.business} style={{border:"1px solid rgba(255,255,255,.12)",borderRadius:14,padding:16,display:"grid",gridTemplateColumns:"minmax(180px,.8fr) minmax(260px,2fr) auto",gap:16,alignItems:"center"}}><div><span className="mono">{p.business}</span><h3 style={{margin:"6px 0"}}>{p.goal}</h3><small>{p.signal}</small></div><div><b>{p.action}</b><p style={{marginBottom:0}}>{p.why}</p></div><button className="primary" onClick={()=>act(p)}>{p.cta} →</button></article>)}</div></section>
