@@ -12,6 +12,10 @@ const venturePresets: Record<string, string[]> = {
   TripleMMM: ["Cinematic interview teaser", "Founder-story promo", "Guest announcement", "Interview social cutdown", "YouTube thumbnail / visual"],
   Oddly: ["Surreal / trippy image", "Cinematic visual experiment", "Branded AI short", "Storyboard sequence"],
   "Lucky Studios": ["Cover artwork", "Release visual", "Song teaser", "Music visual", "Release trailer", "Social clip"],
+  "Brilliant AI Automation": ["LinkedIn post", "Automation explainer", "Case-study visual", "Lead-generation ad", "Proposal visual"],
+  "FireComplianceUK": ["Opportunity post", "Compliance explainer", "Supplier outreach visual", "Tender insight", "LinkedIn post"],
+  "Bankole & Associates": ["Deal announcement", "Investor insight", "Mandate visual", "LinkedIn post", "Pitch visual"],
+  TradeCompare: ["Deal opportunity", "Investor post", "Property analysis visual", "Market insight", "Lead-generation ad"],
   SAYAH: ["Cover artwork", "Release visual", "Song teaser", "Music visual", "Release trailer", "Social clip"],
 };
 
@@ -21,6 +25,10 @@ const videoPresets: Record<string, string[]> = {
   SAYAH: ["Music Teaser", "Release Trailer", "Animate Visual", "Social Clip", "Custom Video"],
   "Lucky Studios": ["Release Visual", "Music Visual", "Campaign Teaser", "Custom Video"],
   TripleMMM: ["Cinematic Interview Teaser", "Founder-Story Promo", "Interview Social Cutdown", "Custom Video"],
+  "Brilliant AI Automation": ["Automation Explainer", "Business Diagnosis Teaser", "Case Study Video", "Custom Video"],
+  "FireComplianceUK": ["Compliance Explainer", "Opportunity Video", "Supplier Teaser", "Custom Video"],
+  "Bankole & Associates": ["Deal Teaser", "Investor Insight", "Mandate Explainer", "Custom Video"],
+  TradeCompare: ["Deal Breakdown", "Investor Opportunity", "Market Insight", "Custom Video"],
 };
 const creationTypes = ["Ad", "Social Post", "Image", "Video", "Long-form Content", "Script", "Carousel", "Presentation", "Cover Art"];
 
