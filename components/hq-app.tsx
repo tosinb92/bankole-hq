@@ -36,6 +36,7 @@ const money = (n: number) => new Intl.NumberFormat("en-GB", { style: "currency",
 
 export default function HQApp() {
   const [view, setView] = useState("Today");
+  const [createRequest, setCreateRequest] = useState<{brand:string;objective:string}|null>(null);
   const [venture, setVenture] = useState<string | null>(null);
   const [rules, setRules] = useState<PricingRule[]>(seededRules);
   const [selectedRule, setSelectedRule] = useState("combo-90");
@@ -60,8 +61,8 @@ export default function HQApp() {
     </aside>
     <section className="content"><header><div><p className="eyebrow">TUESDAY, 16 SEPTEMBER · SEEDED DEMONSTRATION DATA</p><h1>{venture ?? view}</h1></div><div className="header-actions"><button className="quiet">⌘ K Search</button><button className="avatar">TB</button></div></header>
       {venture && (venture === "Bankole & Associates" ? <BAOperations/> : venture === "FireComplianceUK" ? <FireOperations/> : venture === "Brilliant AI Automation" ? <BAAOperations/> : <VentureHome name={venture} openBubble={()=>{setVenture(null);setView("Bubble Operations")}}/>)}
-      {!venture && view === "Today" && <><TodayDashboard openBusiness={setVenture} openCreate={() => setView("Create")} openIntelligence={() => setView("Intelligence")}/><AskHQ openCreate={() => setView("Create")}/></>}
-      {!venture && view === "Create" && <><ContentBank/><CreativeStudio/></>}
+      {!venture && view === "Today" && <><TodayDashboard openBusiness={setVenture} openCreate={(brand,objective) => {setCreateRequest(brand&&objective?{brand,objective}:null);setView("Create")}} openIntelligence={() => setView("Intelligence")}/><AskHQ openCreate={() => setView("Create")}/></>}
+      {!venture && view === "Create" && <><ContentBank initialBrand={createRequest?.brand} initialObjective={createRequest?.objective}/><CreativeStudio/></>}
        
       {!venture && view === "Businesses" && <Ventures setVenture={setVenture}/>} 
       {!venture && view === "Bubble Operations" && <BubbleOps openCall={openCall} setOpenCall={setOpenCall} callResult={callResult} setCallResult={setCallResult}/>} 
