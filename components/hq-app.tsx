@@ -5,12 +5,12 @@ import CreativeStudio from "@/components/creative-studio";
 import AskHQ from "@/components/ask-hq";
 import IntelligenceStudio from "@/components/intelligence-studio";
 import SkillsLibrary from "@/components/skills-library";
-import AstraControl from "@/components/astra-control";
+import AstraControl from "@/components/astra-control";\nimport ContentBank from "@/components/content-bank";
 import { aiJobs, leads, pricingRules as seededRules, skills, venues, ventures } from "@/lib/demo-data";
 import { calculateEntitlement } from "@/lib/entitlement";
 import { PricingRule } from "@/lib/types";
 
-const nav = ["Home", "Ask HQ", "Ventures", "Intelligence", "Create", "Operations"];
+const nav = ["Home", "Ask HQ", "Ventures", "Intelligence", "Content Bank", "Create", "Operations"];
 const creationTypes = ["Ad", "Short-form video script", "Long-form content", "Carousel", "Presentation", "Campaign", "Email / outreach message", "Content repurposing", "YouTube packaging", "Creative brief", "Video concept / storyboard"];
 const creationPresets: Record<string,string[]> = {
   "Bubble Leisure":["Create paid-social ad","Create parent-focused post","Create promo script","Create offer angle"],
@@ -60,7 +60,7 @@ export default function HQApp() {
       {venture && (venture === "Bankole & Associates" ? <BAOperations/> : venture === "FireComplianceUK" ? <FireOperations/> : venture === "Brilliant AI Automation" ? <BAAOperations/> : <VentureHome name={venture} openBubble={()=>{setVenture(null);setView("Bubble Operations")}}/>)}
       {!venture && view === "Home" && <ActionCentre setView={setView} setVenture={setVenture}/>} 
       {!venture && view === "Ask HQ" && <AskHQ openCreate={() => setView("Create")}/>}
-      {!venture && view === "Create" && <CreativeStudio/>}
+      {!venture && view === "Content Bank" && <ContentBank/>}\n      {!venture && view === "Create" && <CreativeStudio/>}
        
       {!venture && view === "Ventures" && <Ventures setVenture={setVenture}/>} 
       {!venture && view === "Bubble Operations" && <BubbleOps openCall={openCall} setOpenCall={setOpenCall} callResult={callResult} setCallResult={setCallResult}/>} 
