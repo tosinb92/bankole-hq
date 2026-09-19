@@ -32,7 +32,7 @@ type WorkflowHandoff = {
   sourceEvidenceIds?: string[];
 };
 
-const ventures = ["Bubble Leisure", "TripleMMM", "Oddly", "Lucky Studios", "SAYAH", "FireComplianceUK", "Bankole & Associates"];
+const ventures = ["Bubble Leisure", "Brilliant AI Automation", "FireComplianceUK", "Bankole & Associates", "TradeCompare", "Lucky Studios", "SAYAH", "Oddly", "TripleMMM"];
 const examples = [
   "Find me new Bubble Leisure paid-social opportunities from competitor intelligence",
   "Create a Bubble Leisure paid-social campaign",
@@ -158,8 +158,7 @@ export default function AskHQ({ openCreate }: { openCreate: () => void }) {
 
   return <>
     <section className="exec-hero">
-      <div><p className="eyebrow">ASK HQ · OUTCOME-FIRST WORKFLOWS</p><h2>Tell HQ what you want accomplished.</h2><p>HQ recommends from active imported SKILL.md instructions, then executes each approved step with inspectable provenance.</p></div>
-      <span className="badge needs-approval">You approve each output</span>
+      <div><p className="eyebrow">ASK HQ</p><h2>What do you want done?</h2><p>Describe the outcome in normal language. HQ chooses the right methods and evidence underneath.</p></div>
     </section>
     <section className="creative-workspace">
       <div className="panel create-form">
@@ -168,20 +167,20 @@ export default function AskHQ({ openCreate }: { openCreate: () => void }) {
         <div className="preset-list">{examples.map(item => <button key={item} onClick={() => { setOutcome(item); if (item.includes("TripleMMM")) setVenture("TripleMMM"); else if (item.includes("SAYAH")) setVenture("SAYAH"); else setVenture("Bubble Leisure"); }}>{item}<b>→</b></button>)}</div>
         {sourceContext && <label>Selected intelligence context<textarea rows={6} value={sourceContext} onChange={event => setSourceContext(event.target.value)} /></label>}
         <p className="note">{sourceEvidenceIds.length ? `${sourceEvidenceIds.length} selected evidence record(s) will be included. No unselected competitor evidence is sent.` : "No competitor evidence selected. HQ can still route a workflow from your outcome and approved skills."}</p>
-        <button className="primary" onClick={recommend} disabled={!!busy || !outcome.trim()}>{busy === "recommend" ? "Matching approved skills…" : "Recommend Workflow"}</button>
+        <button className="primary" onClick={recommend} disabled={!!busy || !outcome.trim()}>{busy === "recommend" ? "Working out the best approach…" : "Start →"}</button>
       </div>
       <div className="creative-results">
         <section className="panel">
-          <div className="panel-title"><h2>Proposed workflow</h2><span>{proposal ? `${proposal.steps.length} approved skill step(s)` : "Waiting for an outcome"}</span></div>
-          {!proposal && <div className="create-empty">Describe the result you need. HQ will inspect the actual active imported skill instructions and explain why each recommended step fits.</div>}
-          {proposal && <><p>{proposal.summary}</p><p className="note">{proposal.evidenceNote}</p><div className="workflow-step-list">{proposal.steps.map((step, index) => <article key={step.skillId + index} className={index === activeStep ? "opportunity-card selected-preset" : "opportunity-card"}><b>{index + 1}. {step.skillName}</b><p>{step.reason}</p><small>Needs: {step.requiredInput}</small><small>Source: {step.sourceFile ?? "Imported SKILL.md"} · {step.sourceVersion ?? "Imported version"}</small><button onClick={() => setActiveStep(index)}>Open step</button></article>)}</div></>}
+          <div className="panel-title"><h2>HQ plan</h2><span>{proposal ? `${proposal.steps.length} step(s)` : "Waiting for your instruction"}</span></div>
+          {!proposal && <div className="create-empty">Tell HQ what result you want. The technical workflow stays underneath unless you need to inspect it.</div>}
+          {proposal && <><p>{proposal.summary}</p><p className="note">{proposal.evidenceNote}</p><div className="workflow-step-list">{proposal.steps.map((step, index) => <article key={step.skillId + index} className={index === activeStep ? "opportunity-card selected-preset" : "opportunity-card"}><b>{index + 1}. {step.reason}</b><small>{executions[index]?.approved ? "Completed" : index === activeStep ? "Ready" : "Queued"}</small><button onClick={() => setActiveStep(index)}>Open step</button></article>)}</div></>}
         </section>
         {currentStep && <section className="panel intelligence-result">
-          <div className="panel-title"><h2>Step {activeStep + 1} · {currentStep.skillName}</h2><span className="badge needs-approval">{executions[activeStep]?.approvalState ?? "Not run"}</span></div>
-          <div className="evidence-links"><b>Provenance</b><span>{currentStep.sourceFile ?? "Imported SKILL.md"} · {currentStep.sourceVersion ?? "Imported version"}</span><span>{sourceEvidenceIds.length} explicitly selected evidence record(s)</span></div>
-          <label>Input to this skill<textarea rows={7} value={stepInput} readOnly /></label>
-          {!executions[activeStep] && <div className="output-actions"><button className="primary" onClick={runStep} disabled={!!busy || !stepInput.trim()}>{busy === "execute" ? "Running approved skill…" : "Run this Skill"}</button><button onClick={() => setActiveStep(Math.min(activeStep + 1, proposal!.steps.length - 1))} disabled={activeStep === proposal!.steps.length - 1}>Skip this step</button></div>}
-          {executions[activeStep] && <><label>Actual generated output<textarea rows={18} value={executions[activeStep]!.output} onChange={event => editOutput(event.target.value)} /></label><div className="output-actions"><button onClick={runStep} disabled={!!busy}>{busy === "execute" ? "Regenerating…" : "Regenerate"}</button><button onClick={() => navigator.clipboard?.writeText(executions[activeStep]!.output)}>Copy</button><button onClick={approve} disabled={!!busy || executions[activeStep]!.approved}>{busy === "approve" ? "Saving approval…" : executions[activeStep]!.approved ? "Approved" : "Approve output"}</button>{activeStep < proposal!.steps.length - 1 && <button className="primary" onClick={() => setActiveStep(activeStep + 1)} disabled={!executions[activeStep]!.approved}>Continue to next Skill →</button>}<button onClick={() => sendToCreate()}>Send to Create</button><button className="primary" onClick={() => sendToCreate("Video")}>Send to Create → Video</button></div></>}
+          <div className="panel-title"><h2>Step {activeStep + 1}</h2><span className="badge needs-approval">{executions[activeStep]?.approvalState ?? "Ready"}</span></div>
+          
+          
+          {!executions[activeStep] && <div className="output-actions"><button className="primary" onClick={runStep} disabled={!!busy || !stepInput.trim()}>{busy === "execute" ? "Working…" : "Do this step"}</button><button onClick={() => setActiveStep(Math.min(activeStep + 1, proposal!.steps.length - 1))} disabled={activeStep === proposal!.steps.length - 1}>Skip this step</button></div>}
+          {executions[activeStep] && <><label>Actual generated output<textarea rows={18} value={executions[activeStep]!.output} onChange={event => editOutput(event.target.value)} /></label><div className="output-actions"><button onClick={runStep} disabled={!!busy}>{busy === "execute" ? "Regenerating…" : "Regenerate"}</button><button onClick={() => navigator.clipboard?.writeText(executions[activeStep]!.output)}>Copy</button><button onClick={approve} disabled={!!busy || executions[activeStep]!.approved}>{busy === "approve" ? "Saving approval…" : executions[activeStep]!.approved ? "Approved" : "Approve output"}</button>{activeStep < proposal!.steps.length - 1 && <button className="primary" onClick={() => setActiveStep(activeStep + 1)} disabled={!executions[activeStep]!.approved}>Continue →</button>}<button onClick={() => sendToCreate()}>Send to Create</button><button className="primary" onClick={() => sendToCreate("Video")}>Send to Create → Video</button></div></>}
         </section>}
         {proposal?.sourceEvidence.length ? <section className="panel"><div className="panel-title"><h2>Selected source evidence</h2><span>Observed, not inferred</span></div>{proposal.sourceEvidence.map(item => <article className="opportunity-card" key={item.id}><b>{item.title}</b><small>{item.provenance}</small>{item.sourceUrl && <a href={item.sourceUrl} target="_blank" rel="noreferrer">Open source ↗</a>}</article>)}</section> : null}
       </div>
