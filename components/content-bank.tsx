@@ -13,9 +13,9 @@ const goals=[
  ["30-day content plan","Create a practical 30-day social content system balancing reach, trust, conversion and repeatable series."]
 ];
 
-export default function ContentBank(){
- const [brand,setBrand]=useState("Bubble Leisure");
- const [objective,setObjective]=useState(goals[0][1]);
+export default function ContentBank({initialBrand,initialObjective}:{initialBrand?:string;initialObjective?:string}){
+ const [brand,setBrand]=useState(initialBrand||"Bubble Leisure");
+ const [objective,setObjective]=useState(initialObjective||goals[0][1]);
  const [count,setCount]=useState(10);
  const [generation,setGeneration]=useState<Generation|null>(null);
  const [busy,setBusy]=useState(false);
