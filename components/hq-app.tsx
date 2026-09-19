@@ -57,9 +57,9 @@ export default function HQApp() {
   return <main className="shell">
     <aside className="sidebar"><div className="brand"><span className="key">◆</span> BANKOLE <b>HQ</b></div><p className="private">PRIVATE OPERATING SYSTEM</p>
       <nav>{nav.map(item => <button className={view === item && !venture ? "nav active" : "nav"} onClick={() => {setView(item);setVenture(null)}} key={item}>{item}</button>)}</nav>
-      <div className="side-foot"><span className="pulse"/>System ready<br/><small>Demo workspace · V0.1</small></div>
+      <div className="side-foot"><span className="pulse"/>HQ online<br/><small>Private workspace</small></div>
     </aside>
-    <section className="content"><header><div><p className="eyebrow">TUESDAY, 16 SEPTEMBER · SEEDED DEMONSTRATION DATA</p><h1>{venture ?? view}</h1></div><div className="header-actions"><button className="quiet">⌘ K Search</button><button className="avatar">TB</button></div></header>
+    <section className="content"><header><div><p className="eyebrow">BANKOLE HQ · PRIVATE OPERATING SYSTEM</p><h1>{venture ?? view}</h1><p className="page-purpose">{venture ? "Focus on this business without the rest of HQ competing for attention." : view === "Today" ? "See what matters and decide what moves today." : view === "Businesses" ? "Choose a business to focus on." : view === "Intelligence" ? "See what is working and what to do next." : "Turn an idea or opportunity into something usable."}</p></div><div className="header-actions"><button className="quiet">Search</button><button className="avatar">TB</button></div></header>
       {venture && (venture === "Bankole & Associates" ? <BAOperations/> : venture === "FireComplianceUK" ? <FireOperations/> : venture === "Brilliant AI Automation" ? <BAAOperations/> : <VentureHome name={venture} openBubble={()=>{setVenture(null);setView("Bubble Operations")}}/>)}
       {!venture && view === "Today" && <><TodayDashboard openBusiness={setVenture} openCreate={(brand,objective) => {setCreateRequest(brand&&objective?{brand,objective}:null);setView("Create")}} openIntelligence={() => setView("Intelligence")}/><AskHQ openCreate={() => setView("Create")}/></>}
       {!venture && view === "Create" && <><ContentBank initialBrand={createRequest?.brand} initialObjective={createRequest?.objective}/><CreativeStudio/></>}
