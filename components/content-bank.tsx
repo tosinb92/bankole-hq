@@ -5,10 +5,17 @@ type GeneratedPiece={title:string;format:string;hook:string;concept:string;capti
 type Generation={brand:string;objective:string;strategy:string;skillsUsed:string[];evidenceSummary:string;pieces:GeneratedPiece[]};
 
 const brands=["Bubble Leisure","SAYAH","Lucky Studios","Brilliant AI Automation","FireComplianceUK","Bankole & Associates","TradeCompare","TripleMMM"];
+const goals=[
+ ["Get customers","Create conversion-focused social content that turns attention into enquiries, calls, bookings or qualified leads."],
+ ["Grow audience","Create high-retention, shareable social content that attracts the right audience and gives them a reason to follow."],
+ ["Build authority","Create useful proof-led content that demonstrates expertise, trust and a clear point of view without unsupported claims."],
+ ["Launch / promote","Create a coordinated launch campaign with teasers, reveal content, proof, objection handling and direct response posts."],
+ ["30-day content plan","Create a practical 30-day social content system balancing reach, trust, conversion and repeatable series."]
+];
 
 export default function ContentBank(){
  const [brand,setBrand]=useState("Bubble Leisure");
- const [objective,setObjective]=useState("Create content that grows the audience and produces measurable commercial results.");
+ const [objective,setObjective]=useState(goals[0][1]);
  const [count,setCount]=useState(10);
  const [generation,setGeneration]=useState<Generation|null>(null);
  const [busy,setBusy]=useState(false);
@@ -28,15 +35,18 @@ export default function ContentBank(){
  };
  const copy=(x:GeneratedPiece)=>navigator.clipboard?.writeText(`${x.hook}\n\n${x.caption}\n\nCTA: ${x.cta}\n\nPRODUCTION: ${x.productionBrief}`);
 
- return <><section className="exec-hero"><div><p className="eyebrow">CONTENT BANK · SKILL-LED GENERATION</p><h2>Generate content from your approved Skills—not generic templates.</h2><p>Choose the business and objective. HQ selects the venture's preferred approved Skills, uses their actual SKILL.md instructions and returns distinct production-ready concepts. Nothing is pre-filled just to make the bank look busy.</p></div><strong>{pieces.length} evidence-led pieces</strong></section>
- <section className="panel wide"><div className="panel-title"><h2>Generate a content batch</h2><span>Skills → strategy → content</span></div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
+ return <><section className="exec-hero"><div><p className="eyebrow">CREATE · SOCIAL CONTENT ENGINE</p><h2>Tell HQ the result you want. Get content you can actually post.</h2><p>Choose a business and outcome. HQ uses that business's approved Skills to build the strategy, hooks, captions and production instructions. You should not need to understand or manage the Skills yourself.</p></div><strong>{pieces.length} ready ideas</strong></section>
+ <section className="panel wide"><div className="panel-title"><h2>1. What are we trying to achieve?</h2><span>{brand}</span></div>
+ <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10,marginBottom:16}}>{goals.map(([label,value])=><button key={label} onClick={()=>setObjective(value)} className={objective===value?"primary":""} style={{textAlign:"left",padding:14}}><b>{label}</b></button>)}</div>
+ <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:12}}>
  <label>Business<select value={brand} onChange={e=>setBrand(e.target.value)}>{brands.map(x=><option key={x}>{x}</option>)}</select></label>
- <label>Pieces<select value={count} onChange={e=>setCount(Number(e.target.value))}>{[5,10,20,50,100].map(x=><option key={x}>{x}</option>)}</select></label>
- </div><label style={{display:"block",marginTop:12}}>What do you want the content to achieve?<textarea value={objective} onChange={e=>setObjective(e.target.value)} rows={3} style={{width:"100%"}}/></label>
- <div className="output-actions"><button className="primary" onClick={generate} disabled={busy||!objective.trim()}>{busy?"Running approved Skills…":`Generate ${count} with my Skills →`}</button></div>
- <p className="note">HQ will refuse to fake research. If approved Skills, the database or AI execution are not configured, it will tell you exactly what is missing instead of substituting generic posts.</p></section>
- {error&&<section className="creative-error">{error}</section>}
- {generation&&<section className="panel wide"><div className="panel-title"><h2>{generation.brand} strategy</h2><span>{generation.skillsUsed.length} Skills used</span></div><p><b>Objective · </b>{generation.objective}</p><p>{generation.strategy}</p><details><summary>Why HQ generated this batch</summary><p>{generation.evidenceSummary}</p><p><b>Skills · </b>{generation.skillsUsed.join(" · ")}</p></details></section>}
- {pieces.length>0&&<section className="panel wide"><div style={{display:"grid",gap:12}}>{pieces.map((x,i)=><article key={i} style={{border:"1px solid rgba(255,255,255,.12)",borderRadius:14,padding:16}}><div style={{display:"flex",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><span className="mono">{generation?.brand} · #{i+1} · {x.format}</span><span className="badge needs-approval">{status[i]||"GENERATED BY SKILLS"}</span></div><h3 style={{margin:"10px 0 6px"}}>{x.title}</h3><p><b>Purpose · </b>{x.purpose}</p><p><b>Hook · </b>{x.hook}</p><p>{x.concept}</p><p>{x.caption}</p><p><b>CTA · </b>{x.cta}</p><details><summary>Production brief + provenance</summary><p>{x.productionBrief}</p><p><b>Skills used · </b>{x.skillsUsed?.join(" · ")||generation?.skillsUsed.join(" · ")}</p>{x.evidenceUsed?.length?<p><b>Evidence · </b>{x.evidenceUsed.join(" · ")}</p>:null}</details><div className="output-actions"><button onClick={()=>copy(x)}>Copy ready post</button><button onClick={()=>setStatus(s=>({...s,[i]:"SHORTLISTED"}))}>Shortlist</button><button onClick={()=>setStatus(s=>({...s,[i]:"IN PRODUCTION"}))}>Move to production</button><button onClick={()=>setStatus(s=>({...s,[i]:"POSTED"}))}>Mark posted</button></div></article>)}</div></section>}
+ <label>How many ideas?<select value={count} onChange={e=>setCount(Number(e.target.value))}>{[5,10,20,50,100].map(x=><option key={x}>{x}</option>)}</select></label>
+ </div>
+ <label style={{display:"block",marginTop:14}}>Brief / outcome<textarea value={objective} onChange={e=>setObjective(e.target.value)} rows={3} style={{width:"100%"}}/></label>
+ <div className="output-actions"><button className="primary" onClick={generate} disabled={busy||!objective.trim()}>{busy?"Building your campaign…":`Build ${count} posts for ${brand} →`}</button></div>
+ <p className="note">HQ handles Skill selection in the background. Generated work will show the reasoning and provenance underneath, but you do not need to operate the Skills Library.</p></section>
+ {error&&<section className="creative-error"><b>HQ cannot generate yet.</b><br/>{error}</section>}
+ {generation&&<section className="panel wide"><div className="panel-title"><h2>2. Campaign direction</h2><span>{generation.skillsUsed.length} approved Skills applied</span></div><p>{generation.strategy}</p><details><summary>Show evidence and Skills used</summary><p>{generation.evidenceSummary}</p><p><b>Skills · </b>{generation.skillsUsed.join(" · ")}</p></details></section>}
+ {pieces.length>0&&<section className="panel wide"><div className="panel-title"><h2>3. Your ready-to-produce content</h2><span>{pieces.length} ideas</span></div><div style={{display:"grid",gap:12}}>{pieces.map((x,i)=><article key={i} style={{border:"1px solid rgba(255,255,255,.12)",borderRadius:14,padding:16}}><div style={{display:"flex",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><span className="mono">#{i+1} · {x.format} · {x.purpose}</span><span className="badge needs-approval">{status[i]||"READY TO REVIEW"}</span></div><h3 style={{margin:"10px 0 6px"}}>{x.title}</h3><p><b>Opening / hook · </b>{x.hook}</p><p><b>What happens · </b>{x.concept}</p><p><b>Caption · </b>{x.caption}</p><p><b>CTA · </b>{x.cta}</p><details><summary>How to make this</summary><p>{x.productionBrief}</p><p><b>Skills · </b>{x.skillsUsed?.join(" · ")||generation?.skillsUsed.join(" · ")}</p>{x.evidenceUsed?.length?<p><b>Evidence · </b>{x.evidenceUsed.join(" · ")}</p>:null}</details><div className="output-actions"><button onClick={()=>copy(x)}>Copy post</button><button onClick={()=>setStatus(s=>({...s,[i]:"SHORTLISTED"}))}>Save</button><button className="primary" onClick={()=>setStatus(s=>({...s,[i]:"IN PRODUCTION"}))}>Make this →</button><button onClick={()=>setStatus(s=>({...s,[i]:"POSTED"}))}>Posted</button></div></article>)}</div></section>}
  </>;
 }
