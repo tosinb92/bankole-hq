@@ -31,8 +31,9 @@ export async function GET() {
  const activeLeads=leads.filter(x=>!["WON","LOST"].includes(String(x.stage)));
  activeLeads.slice(0,12).forEach(l=>queue.push({id:"lead-"+l.id,business:l.venture?.name??"HQ",type:"LEAD",title:l.customerName,detail:`${l.stage}${l.estimatedValue?` · est. £${l.estimatedValue.toString()}`:""}${l.requestedLocation?` · ${l.requestedLocation}`:""}`,priority:78,action:"business",source:"HQ database"}));
  queue.sort((a,b)=>b.priority-a.priority);
- const pipelineValue=activeDeals.reduce((sum,d)=>sum+Number(d.value??0),0);
  const leadValue=activeLeads.reduce((sum,l)=>sum+Number(l.estimatedValue??0),0);
- const recordedRevenue=revenue.reduce((sum,r)=>sum+Number(r.amount??0),0);
- return NextResponse.json({generatedAt:new Date().toISOString(),dataPolicy:"Live HQ database records are combined with explicitly labelled current operator context; no demo records are generated.",metrics:{ventures:ventures.length,openTasks:tasks.length,activeLeads:activeLeads.length,activeDeals:activeDeals.length,opportunities:opportunities.length,approvals:approvals.length,pipelineValue,leadValue,recordedRevenue},queue:queue.slice(0,24),integrations:{hqDatabase:"LIVE",instagram:"CONNECTED FOR SUPPORTED ACCOUNTS",gmail:"CONNECTED TO CHATGPT; HQ SERVER SYNC NOT YET WIRED",vidiq:"SECRET ADDED; DIRECT HQ MCP SYNC IN PROGRESS",fireOpportunitySources:"RESEARCH WORKFLOW AVAILABLE; CONTINUOUS SYNC NOT YET WIRED"}});
+ // Deal and revenue records currently have no currency field. Do not aggregate them into a misleading GBP total.
+ const pipelineValue:null=null;
+ const recordedRevenue:null=null;
+ return NextResponse.json({generatedAt:new Date().toISOString(),dataPolicy:"Live HQ database records are combined with explicitly labelled current operator context; no demo records are generated.",metrics:{ventures:ventures.length,openTasks:tasks.length,activeLeads:activeLeads.length,activeDeals:activeDeals.length,opportunities:opportunities.length,approvals:approvals.length,pipelineValue,leadValue,recordedRevenue,currencyNotice:"Deal/revenue totals are hidden until currency is recorded per entry. Lead estimates are GBP for the current Bubble Leisure workflow."},queue:queue.slice(0,24),integrations:{hqDatabase:"LIVE",instagram:"CONNECTED FOR SUPPORTED ACCOUNTS",gmail:"CONNECTED TO CHATGPT; HQ SERVER SYNC NOT YET WIRED",vidiq:"SECRET ADDED; DIRECT HQ MCP SYNC IN PROGRESS",fireOpportunitySources:"RESEARCH WORKFLOW AVAILABLE; CONTINUOUS SYNC NOT YET WIRED"}});
 }
