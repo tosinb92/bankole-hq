@@ -9,7 +9,7 @@ export async function POST(req:Request){
  const ventureName=b.venture?.trim()||"Bubble Leisure"; const venture=await prisma.venture.findUnique({where:{name:ventureName}});
  if(!venture)return NextResponse.json({error:`${ventureName} is not connected to the HQ database yet.`},{status:404});
  const q=lower(command);
- const recordCommand=async(summary:string,outcome:string)=>prisma.action.create({data:{ventureId:venture.id,title:`HQ: ${command.slice(0,120)}`,kind:"RUN_SKILL",lane:"AI_CAN_HANDLE",urgency:3,recommendation:summary,executionState:"Completed",outcome}}).catch(()=>null);
+ const recordCommand=async(summary:string,outcome:string)=>{try{await prisma.action.create({data:{ventureId:venture.id,title:`HQ: ${command.slice(0,120)}`,kind:"RUN_SKILL",lane:"AI_CAN_HANDLE",urgency:3,recommendation:summary,executionState:"Completed",outcome}});return true;}catch{return false;}};
  if(/lead|enquir|booking|quote|customer/.test(q)){
    const leads=await prisma.lead.findMany({where:{ventureId:venture.id,stage:{notIn:["WON","LOST"]}},orderBy:{updatedAt:"desc"},take:12,include:{quotes:{orderBy:{createdAt:"desc"},take:1}}});
    await recordCommand(`Reviewed active leads for ${ventureName}.`,`${leads.length} active lead(s) returned.`);
