@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 55;
 
 export async function POST(request: Request) {
   if (!process.env.DATABASE_URL) return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
@@ -23,7 +23,7 @@ Find up to 6 useful recent public examples: organic social posts/videos OR comme
 
 Return ONLY JSON:
 {"evidence":[{"title":"...","sourceUrl":"https://...","platform":"INSTAGRAM|META|YOUTUBE|WEB","distribution":"ORGANIC|PAID","contentType":"REEL|SOCIAL_POST|VIDEO|CAMPAIGN|WEBSITE_PAGE","summary":"what the creative/message actually does","publicSignal":"specific observable fact, or null","whyItMatters":"short commercial interpretation"}]}`;
-  const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${process.env.OPENAI_API_KEY}`},body:JSON.stringify({model:"gpt-5-mini",tools:[{type:"web_search"}],input:prompt})});
+  const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${process.env.OPENAI_API_KEY}`},body:JSON.stringify({model:"gpt-5-mini",tools:[{type:"web_search"}],input:prompt,max_output_tokens:2200})});
   const raw=await response.json().catch(()=>({}));
   if(!response.ok){const detail=raw?.error?.message||`Provider returned ${response.status}`; console.error("competitor-research-provider",response.status,detail); return NextResponse.json({error:"HQ could not research this competitor right now."},{status:502});}
   const text=(raw.output||[]).flatMap((x:any)=>x.content||[]).map((x:any)=>x.text||"").join("").trim().replace(/^```json\s*/i,"").replace(/```$/,"").trim();
