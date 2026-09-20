@@ -24,10 +24,10 @@ export async function POST(request: Request) {
 BUSINESS: ${venture}
 CONTEXT: ${CONTEXT[venture] || venture}
 
-Find 6 relevant organisations/brands. Prefer direct competitors in the same target market; use adjacent comparison brands only where genuinely useful. Verify each from current public web sources. Do not invent companies or URLs.
+Find 6 relevant organisations/brands. Prefer direct competitors in the same target market; use adjacent comparison brands only where genuinely useful. Verify each from current public web sources. For each competitor, also find official public Instagram, Facebook and YouTube URLs when confidently verified; otherwise use null. Do not invent companies, handles or URLs.
 
 Return ONLY valid JSON in this exact shape:
-{"competitors":[{"name":"...","websiteUrl":"https://...","reason":"one plain-English sentence explaining why this is relevant","focus":"short label such as Direct competitor, Content benchmark, Offer benchmark or Adjacent competitor"}]}`;
+{"competitors":[{"name":"...","websiteUrl":"https://...","instagramUrl":"https://instagram.com/... or null","facebookUrl":"https://facebook.com/... or null","youtubeUrl":"https://youtube.com/... or null","reason":"one plain-English sentence explaining why this is relevant","focus":"short label such as Direct competitor, Content benchmark, Offer benchmark or Adjacent competitor"}]}`;
 
   const response = await fetch("https://api.openai.com/v1/responses", {
     method:"POST",
