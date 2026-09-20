@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Competitor = { id: string; name: string; websiteUrl?: string | null; lastCollectedAt?: string | null; lastCollectionError?: string | null };
-type Evidence = { id: string; competitorName: string; platform: string; distribution: string; title: string; sourceUrl?: string | null; mediaUrl?: string | null; contentText?: string | null; activityStatus?: string | null; capturedAt: string; provenance: string; observableSignals?: { publicSignal?: string|null; strengthSignal?: string|null; replicationIdea?: string|null }|null };
+type Evidence = { id: string; competitorName: string; platform: string; distribution: string; contentType?: string | null; title: string; sourceUrl?: string | null; mediaUrl?: string | null; contentText?: string | null; activityStatus?: string | null; capturedAt: string; provenance: string; observableSignals?: { publicSignal?: string|null; strengthSignal?: string|null; replicationIdea?: string|null }|null };
 type Opportunity = { id: string; title: string; brief: string; status: string; createdAt: string };
 type SkillRun = { id: string; output: string; evidence: Array<{ id: string; title: string; sourceUrl?: string | null; provenance: string }> };
 type ImportedSkill = { id: string; name: string; active: boolean };
