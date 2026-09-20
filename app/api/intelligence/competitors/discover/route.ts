@@ -35,7 +35,7 @@ Return ONLY valid JSON in this exact shape:
     body:JSON.stringify({model:"gpt-5-mini",tools:[{type:"web_search"}],input:prompt})
   });
   const raw = await response.json().catch(()=>({}));
-  if (!response.ok) return NextResponse.json({error:"HQ could not research competitors right now."},{status:502});
+  if (!response.ok) { const detail = raw?.error?.message || raw?.error?.code || `Provider returned ${response.status}`; console.error("competitor-discovery-provider", response.status, detail); return NextResponse.json({error: response.status === 429 ? "Competitor research is waiting for available AI usage. HQ can still use saved competitors and public sources." : "HQ could not research competitors right now.", detail: process.env.NODE_ENV === "development" ? detail : undefined},{status:502}); }
   const text = (raw.output||[]).flatMap((x:any)=>x.content||[]).map((x:any)=>x.text||"").join("").trim();
   const cleaned = text.replace(/^\`\`\`json\s*/i,"").replace(/\`\`\`$/,"").trim();
   try {
