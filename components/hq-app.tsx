@@ -110,16 +110,47 @@ function Metric({label,value,hint,tone}:{label:string;value:string;hint:string;t
 function PanelTitle({title,action}:{title:string;action:string}) {return <div className="panel-title"><h2>{title}</h2><button>{action} →</button></div>}
 function Attention({title,body,badge,onClick}:{title:string;body:string;badge:string;onClick:()=>void}) {return <button className="attention-row" onClick={onClick}><span className="warning">!</span><span><b>{title}</b><small>{body}</small></span><em>{badge}</em><span>›</span></button>}
 function BusinessControl({name,setView,setVenture}:{name:string;setView:(v:string)=>void;setVenture:(v:string|null)=>void}){
- const [command,setCommand]=useState(""); const [msg,setMsg]=useState("");
+ const [command,setCommand]=useState("");
+ const [msg,setMsg]=useState("");
  const config:Record<string,{purpose:string;status:string;actions:[string,string,string][]}>={
- "Bubble Leisure":{purpose:"Convert enquiries into profitable bookings.",status:"HQ lead records are live. Full Bubble website/backend integration is next.",actions:[["Open lead operations","Leads → quote → venue → follow-up → booking","bubble"],["Find winning campaigns","Competitor ads and campaign intelligence","intel"],["Create campaign","Turn intelligence into Bubble creative","create"]]},
- "Brilliant AI Automation":{purpose:"Turn operational problems into paying automation clients.",status:"BAA Supabase pipeline has live read/write actions in HQ.",actions:[["Open live BAA pipeline","Audit → approve outreach → meeting → proposal → won","baa"],["Research prospects","Find companies with automation pain","intel"],["Create pitch or outreach","Generate client-facing sales assets","create"]]},
- "FireComplianceUK":{purpose:"Turn compliance demand into matched, winnable work.",status:"HQ opportunity workflow exists. FireCompliance backend sync is not continuous yet.",actions:[["Open fulfilment workspace","Opportunity → supplier match → quote → delivery","fire"],["Find opportunities","Research tenders and buyer signals","intel"],["Create outreach","Prepare buyer/supplier communication","create"]]},
- "Bankole & Associates":{purpose:"Move mandates through diligence, capital matching and fee milestones.",status:"HQ deal records are live. Full B&A platform sync is still being connected.",actions:[["Open deal workspace","Mandates → diligence → capital → commitment → fee","ba"],["Find new mandates","Research new transaction opportunities","intel"],["Create deal communication","Draft chases, summaries and requests","create"]]}
+  "Bubble Leisure":{purpose:"Convert enquiries into profitable bookings.",status:"HQ lead records are live. Full Bubble website/backend integration is next.",actions:[["Open lead operations","Leads → quote → venue → follow-up → booking","bubble"],["Find winning campaigns","Competitor ads and campaign intelligence","intel"],["Create campaign","Turn intelligence into Bubble creative","create"]]},
+  "Brilliant AI Automation":{purpose:"Turn operational problems into paying automation clients.",status:"BAA Supabase pipeline has live read/write actions in HQ.",actions:[["Open live BAA pipeline","Audit → approve outreach → meeting → proposal → won","baa"],["Research prospects","Find companies with automation pain","intel"],["Create pitch or outreach","Generate client-facing sales assets","create"]]},
+  "FireComplianceUK":{purpose:"Turn compliance demand into matched, winnable work.",status:"HQ opportunity workflow exists. FireCompliance backend sync is not continuous yet.",actions:[["Open fulfilment workspace","Opportunity → supplier match → quote → delivery","fire"],["Find opportunities","Research tenders and buyer signals","intel"],["Create outreach","Prepare buyer/supplier communication","create"]]},
+  "Bankole & Associates":{purpose:"Move mandates through diligence, capital matching and fee milestones.",status:"HQ deal records are live. Full B&A platform sync is still being connected.",actions:[["Open deal workspace","Mandates → diligence → capital → commitment → fee","ba"],["Find new mandates","Research new transaction opportunities","intel"],["Create deal communication","Draft chases, summaries and requests","create"]]}
  };
- const x=config[name]; if(!x)return null;
- const run=(kind:string,label:string)=>{if(kind==="intel"){setVenture(null);setView("Intelligence")}else if(kind==="create"){sessionStorage.setItem("bankole-hq:create-handoff",JSON.stringify({venture:name,project:label,output:command||x.purpose}));setVenture(null);setView("Create")}else if(kind==="bubble"){setVenture(null);setView("Bubble Operations")}else if(kind==="baa"){setVenture(null);setView("BAA Operations")}else if(kind==="fire"){setVenture(null);setView("Fire Operations")}else if(kind==="ba"){setVenture(null);setView("BA Operations")}else setMsg(label)};
- return <><section className="exec-hero business-control-hero"><div><p className="eyebrow">{name.toUpperCase()} · HQ CONTROL</p><h2>{x.purpose}</h2><p>{x.status}</p></div><span className="live-pill">CONTROL VIEW</span></section><section className="business-action-grid">{x.actions.map(a=><button key={a[0]} onClick={()=>run(a[2],a[0])}><span>→</span><b>{a[0]}</b><small>{a[1]}</small></button>)}</section><section className="panel business-command"><div><p className="eyebrow">ASK HQ · {name.toUpperCase()}</p><h2>What do you want done?</h2></div><div className="business-command-row"><input value={command} onChange={e=>setCommand(e.target.value)} placeholder={"e.g. "+(name==="Bubble Leisure"?"Follow up every lead older than 48 hours":name==="Brilliant AI Automation"?"Find five prospects and prepare outreach":name==="FireComplianceUK"?"Find opportunities worth pursuing this week":"Show what is blocking my active deals")}/><button className="primary" onClick={async()=>{if(!command.trim())return;setMsg("Planning the safest workflow…");try{const r=await fetch("/api/workflows/propose",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venture:name,outcome:command,sourceContext:x.purpose})});const data=await r.json();if(!r.ok)throw new Error(data.error||"Could not plan this command.");sessionStorage.setItem("bankole-hq:business-workflow",JSON.stringify(data));setMsg(data.steps?.length ? ("HQ found "+data.steps.length+" approved workflow step"+(data.steps.length===1?"":"s")+". "+(data.summary||"")) : (data.summary||"No approved workflow can safely execute this yet."))}catch(e){setMsg(e instanceof Error?e.message:"Command planning failed.")}}>Run →</button></div>{msg&&<p className="note">{msg}</p>}</section></>
+ const x=config[name];
+ if(!x)return null;
+ const run=(kind:string,label:string)=>{
+  if(kind==="intel"){setVenture(null);setView("Intelligence");return;}
+  if(kind==="create"){sessionStorage.setItem("bankole-hq:create-handoff",JSON.stringify({venture:name,project:label,output:command||x.purpose}));setVenture(null);setView("Create");return;}
+  const routes:Record<string,string>={bubble:"Bubble Operations",baa:"BAA Operations",fire:"Fire Operations",ba:"BA Operations"};
+  if(routes[kind]){setVenture(null);setView(routes[kind]);return;}
+  setMsg(label);
+ };
+ const execute=async()=>{
+  if(!command.trim())return;
+  setMsg("Working…");
+  try{
+   const r=await fetch("/api/hq/command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venture:name,command})});
+   const data=await r.json();
+   if(!r.ok)throw new Error(data.error||"HQ could not run this command.");
+   if(data.mode==="workflow"){
+    const p=await fetch("/api/workflows/propose",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venture:name,outcome:command,sourceContext:x.purpose})});
+    const plan=await p.json();
+    if(!p.ok)throw new Error(plan.error||"Could not plan this command.");
+    sessionStorage.setItem("bankole-hq:business-workflow",JSON.stringify(plan));
+    setMsg(plan.summary||"Workflow prepared.");
+    return;
+   }
+   sessionStorage.setItem("bankole-hq:last-command-result",JSON.stringify(data));
+   setMsg(data.summary||data.message||"Done. Result recorded.");
+  }catch(e){setMsg(e instanceof Error?e.message:"Command failed.");}
+ };
+ return <>
+  <section className="exec-hero business-control-hero"><div><p className="eyebrow">{name.toUpperCase()} · HQ CONTROL</p><h2>{x.purpose}</h2><p>{x.status}</p></div><span className="live-pill">CONTROL VIEW</span></section>
+  <section className="business-action-grid">{x.actions.map(a=><button key={a[0]} onClick={()=>run(a[2],a[0])}><span>→</span><b>{a[0]}</b><small>{a[1]}</small></button>)}</section>
+  <section className="panel business-command"><div><p className="eyebrow">ASK HQ · {name.toUpperCase()}</p><h2>What do you want done?</h2></div><div className="business-command-row"><input value={command} onChange={e=>setCommand(e.target.value)} placeholder={name==="Bubble Leisure"?"e.g. Follow up every lead older than 48 hours":name==="Brilliant AI Automation"?"e.g. Find five prospects and prepare outreach":name==="FireComplianceUK"?"e.g. Find opportunities worth pursuing this week":"e.g. Show what is blocking my active deals"}/><button className="primary" onClick={execute}>Run →</button></div>{msg&&<p className="note">{msg}</p>}</section>
+ </>;
 }
 
 function Ventures({setVenture}:{setVenture:(v:string)=>void}){return <><section className="venture-intro"><p className="eyebrow">VENTURE PORTFOLIO · DEMO</p><h2>One operating system. Different business models.</h2><p>Shared people, documents, tasks, revenue and skills; venture-specific operating views.</p></section><section className="cards ventures-grid">{ventures.map(v=><button className="venture venture-button" onClick={()=>v[0]==="Bubble Leisure"?setVenture("Bubble Leisure"):setVenture(v[0])} key={v[0]}><span className="mono">{v[1]}</span><h2>{v[0]}</h2><p><span className="status"/> {v[2]}</p><footer>{v[3]} <b>Open →</b></footer></button>)}</section></>}
