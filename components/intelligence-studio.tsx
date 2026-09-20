@@ -45,7 +45,8 @@ export default function IntelligenceStudio({ setView }: { setView: (view: string
   };
   useEffect(() => { void load(); }, [venture]);
   useEffect(()=>{ let live=true; setOwnedPosts([]); setOwnedStatus("Loading owned content…"); fetch(`/api/integrations/instagram?venture=${encodeURIComponent(venture)}`,{cache:"no-store"}).then(async r=>({ok:r.ok,data:await r.json()})).then(({ok,data})=>{if(!live)return;setOwnedPosts(ok?(data.posts??[]):[]);setOwnedStatus(data.connected?`${data.account} · live Instagram data`:data.message??"Not connected");}).catch(()=>live&&setOwnedStatus("Owned social data unavailable")); return()=>{live=false}; },[venture]);
-  const filtered = useMemo(() => evidence.filter(item => tab === "Inspiration" ? item.competitorName === "Manual capture" || item.activityStatus === "SAVED" : true), [evidence, tab]);\n  const campaignEvidence = useMemo(() => filtered.filter(item => item.platform !== "WEB"), [filtered]);
+  const filtered = useMemo(() => evidence.filter(item => tab === "Inspiration" ? item.competitorName === "Manual capture" || item.activityStatus === "SAVED" : true), [evidence, tab]);
+  const campaignEvidence = useMemo(() => filtered.filter(item => item.platform !== "WEB"), [filtered]);
   const toggle = (id: string) => setSelected(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
   const captureSocial = async () => {
     setBusy("capture"); setError(null); setNotice(null);
@@ -77,7 +78,12 @@ export default function IntelligenceStudio({ setView }: { setView: (view: string
     sessionStorage.setItem("bankole-hq:workflow-handoff", JSON.stringify({
       venture,
       sourceEvidenceIds: selected,
-      sourceContext: sources.map(item => `[${item.id}] ${item.title}\n${item.contentText ?? ""}\nSource: ${item.sourceUrl ?? "Not captured"}\nProvenance: ${item.provenance}`).join("\n\n"),
+      sourceContext: sources.map(item => `[${item.id}] ${item.title}
+${item.contentText ?? ""}
+Source: ${item.sourceUrl ?? "Not captured"}
+Provenance: ${item.provenance}`).join("
+
+"),
       outcome: `Find me new ${venture} opportunities from the selected competitor intelligence`,
     }));
     setView("Ask HQ");
