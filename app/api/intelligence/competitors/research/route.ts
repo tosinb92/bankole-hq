@@ -15,23 +15,23 @@ async function research(input:string){
     const raw=await response.json().catch(()=>({}));
     if(!response.ok) return {items:[] as ResearchItem[],error:raw?.error?.message||`Provider ${response.status}`};
     const text=(raw.output||[]).flatMap((x:any)=>x.content||[]).map((x:any)=>x.text||"").join("").trim().replace(/^```json\s*/i,"").replace(/```$/,"").trim();
-    try{const parsed=JSON.parse(text);return {items:(Array.isArray(parsed.evidence)?parsed.evidence:[]).slice(0,3) as ResearchItem[]};}catch{return {items:[] as ResearchItem[],error:"Could not structure results"};}
+    try{const parsed=JSON.parse(text);return {items:(Array.isArray(parsed.evidence)?parsed.evidence:[]).slice(0,5) as ResearchItem[]};}catch{return {items:[] as ResearchItem[],error:"Could not structure results"};}
   }catch(e){return {items:[] as ResearchItem[],error:e instanceof Error?e.message:"Research failed"};}finally{clearTimeout(timer);}
 }
 
 export async function POST(request:Request){
   if(!process.env.DATABASE_URL) return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
   if(!process.env.OPENAI_API_KEY) return NextResponse.json({error:"Competitor research needs the configured AI research provider."},{status:503});
-  const body=await request.json().catch(()=>({})) as {competitorId?:string};
+  const body=await request.json().catch(()=>({})) as {competitorId?:string; discoverMarket?:boolean};
   if(!body.competitorId) return NextResponse.json({error:"Competitor is required."},{status:400});
   const competitor=await prisma.competitor.findUnique({where:{id:body.competitorId},include:{venture:true}});
   if(!competitor) return NextResponse.json({error:"Competitor not found."},{status:404});
   let domain=""; try{domain=competitor.websiteUrl?new URL(competitor.websiteUrl).hostname.replace(/^www\./,""):"";}catch{}
   const channels=[competitor.websiteUrl,competitor.instagramUrl,competitor.facebookUrl,competitor.youtubeChannelUrl].filter(Boolean).join("\n");
-  const rules=`Business: ${competitor.venture.name}. Competitor: ${competitor.name}. Known channels:\n${channels}. Return ONLY JSON {"evidence":[{"title":"...","sourceUrl":"https://...","platform":"...","distribution":"PAID|ORGANIC","contentType":"...","summary":"...","publicSignal":"...","strengthSignal":"LOW|MEDIUM|HIGH","replicationIdea":"a distinct test for our business, not copied protected creative","whyItMatters":"..."}]}. Use only real public URLs. Never invent spend, conversions, CPA, ROAS, profit, saves or private metrics.`;
+  const rules=`Business: ${competitor.venture.name}. Starting competitor: ${competitor.name}. Known channels:\n${channels}. IMPORTANT: this is market-wide ad discovery, not a search limited to the starting competitor. If this advertiser has no verifiable ads, find other real advertisers competing for the same customers/occasions and return their ads. Put the advertiser name at the start of title as "ADVERTISER: campaign title". Return ONLY JSON {"evidence":[{"title":"...","sourceUrl":"https://...","platform":"...","distribution":"PAID|ORGANIC","contentType":"...","summary":"...","publicSignal":"...","strengthSignal":"LOW|MEDIUM|HIGH","replicationIdea":"a distinct test for our business, not copied protected creative","whyItMatters":"..."}]}. Use only real public URLs. Never invent spend, conversions, CPA, ROAS, profit, saves or private metrics.`;
   const jobs=[
-    {source:"Google Ads",prompt:`${rules}\nFind up to 3 recent publicly verifiable Google advertising examples/signals. Search Google Ads Transparency Center, Search/YouTube ad evidence and advertiser/domain references. Prefer paid creative; do not substitute a normal homepage unless it directly documents a campaign.`},
-    {source:"Meta & social",prompt:`${rules}\nFind up to 3 recent publicly verifiable Meta/Facebook/Instagram or YouTube campaign/post examples. Prioritise Meta Ad Library and official social URLs. Prefer actual post/ad/video URLs over homepages.`}
+    {source:"Google Ads",prompt:`${rules}\nFind up to 5 recent publicly verifiable Google advertising examples/signals from ANY relevant advertiser in this market. Search beyond the starting competitor. Search Google Ads Transparency Center, Search/YouTube ad evidence and advertiser/domain references. Prefer paid creative; do not substitute a normal homepage unless it directly documents a campaign.`},
+    {source:"Meta & social",prompt:`${rules}\nFind up to 5 recent publicly verifiable Meta/Facebook/Instagram or YouTube campaign/post examples from ANY relevant advertiser in this market. Search beyond the starting competitor. Prioritise Meta Ad Library and official social URLs. Prefer actual post/ad/video URLs over homepages.`}
   ];
   const results=await Promise.all(jobs.map(async j=>({source:j.source,...await research(j.prompt)})));
   const now=new Date(); const saved=[]; const seen=new Set<string>();
