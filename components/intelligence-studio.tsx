@@ -78,12 +78,7 @@ export default function IntelligenceStudio({ setView }: { setView: (view: string
     sessionStorage.setItem("bankole-hq:workflow-handoff", JSON.stringify({
       venture,
       sourceEvidenceIds: selected,
-      sourceContext: sources.map(item => `[${item.id}] ${item.title}
-${item.contentText ?? ""}
-Source: ${item.sourceUrl ?? "Not captured"}
-Provenance: ${item.provenance}`).join("
-
-"),
+      sourceContext: sources.map(item => `[${item.id}] ${item.title}\n${item.contentText ?? ""}\nSource: ${item.sourceUrl ?? "Not captured"}\nProvenance: ${item.provenance}`).join("\n\n"),
       outcome: `Find me new ${venture} opportunities from the selected competitor intelligence`,
     }));
     setView("Ask HQ");
