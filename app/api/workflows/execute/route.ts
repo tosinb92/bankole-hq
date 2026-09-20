@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   }
 
   const ventureName = body.venture.trim();
-  const allowedVentures = new Set(["Bubble Leisure", "TripleMMM", "Oddly", "Lucky Studios", "SAYAH", "FireComplianceUK", "Bankole & Associates"]);
+  const allowedVentures = new Set(["Bubble Leisure", "Brilliant AI Automation", "TripleMMM", "Oddly", "Lucky Studios", "SAYAH", "FireComplianceUK", "Bankole & Associates", "TradeCompare"]);
   if (!allowedVentures.has(ventureName)) return NextResponse.json({ error: "Venture not found." }, { status: 404 });
   const venture = await prisma.venture.upsert({ where: { name: ventureName }, create: { name: ventureName }, update: {} });
 
