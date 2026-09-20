@@ -75,6 +75,12 @@ export default function AskHQ({ openCreate }: { openCreate: () => void }) {
     return [outcome, sourceContext ? `Selected source context: ${sourceContext}` : ""].filter(Boolean).join("\\n\\n");
   }, [proposal, currentStep, activeStep, executions, outcome, sourceContext]);
 
+  const runAction = () => {
+    const action=commandResult?.action; if(!action)return;
+    if(action.target==="Create"){window.sessionStorage.setItem("bankole-hq:create-handoff",JSON.stringify(action.handoff??{venture,project:outcome,output:outcome}));openCreate();return;}
+    window.dispatchEvent(new CustomEvent("hq:navigate",{detail:{target:action.target,venture,itemIds:commandResult?.items?.map(x=>x.id)??[]}}));
+  };
+
   const recommend = async () => {
     setBusy("recommend"); setError(null); setProposal(null); setCommandResult(null); setExecutions([]); setActiveStep(0);
     try {
@@ -91,5 +97,5 @@ export default function AskHQ({ openCreate }: { openCreate: () => void }) {
     finally {setBusy(null);}
   };
 
-  return <section className="panel"><p className="eyebrow">ASK HQ</p><h2>What do you want HQ to do?</h2><div className="business-command-row"><select value={venture} onChange={e=>setVenture(e.target.value)}>{ventures.map(v=><option key={v}>{v}</option>)}</select><input value={outcome} onChange={e=>setOutcome(e.target.value)} placeholder="Tell HQ the outcome you want"/><button className="primary" disabled={!!busy||!outcome.trim()} onClick={recommend}>{busy?"Working…":"Do it →"}</button></div>{error&&<p className="note">{error}</p>}{commandResult&&<div><h3>{commandResult.title}</h3><p>{commandResult.summary}</p>{commandResult.items?.map(item=><div className="commitment" key={item.id}><b>{item.title}</b><span>{item.meta}</span></div>)}</div>}{proposal&&<div><h3>HQ plan</h3><p>{proposal.summary}</p>{proposal.steps.map((step,i)=><div className="commitment" key={step.skillId+String(i)}><b>{step.skillName}</b><span>{step.reason}</span></div>)}</div>}</section>;
+  return <section className="panel"><p className="eyebrow">ASK HQ</p><h2>What do you want HQ to do?</h2><div className="business-command-row"><select value={venture} onChange={e=>setVenture(e.target.value)}>{ventures.map(v=><option key={v}>{v}</option>)}</select><input value={outcome} onChange={e=>setOutcome(e.target.value)} placeholder="Tell HQ the outcome you want"/><button className="primary" disabled={!!busy||!outcome.trim()} onClick={recommend}>{busy?"Working…":"Do it →"}</button></div>{error&&<p className="note">{error}</p>}{commandResult&&<div><h3>{commandResult.title}</h3><p>{commandResult.summary}</p>{commandResult.items?.map(item=><div className="commitment" key={item.id}><b>{item.title}</b><span>{item.meta}</span></div>)}{commandResult.action&&<button className="primary" onClick={runAction}>{commandResult.action.label} →</button>}</div>}{proposal&&<div><h3>HQ plan</h3><p>{proposal.summary}</p>{proposal.steps.map((step,i)=><div className="commitment" key={step.skillId+String(i)}><b>{step.skillName}</b><span>{step.reason}</span></div>)}</div>}</section>;
 }
