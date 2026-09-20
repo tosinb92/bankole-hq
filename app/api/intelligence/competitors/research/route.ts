@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   if(!body.competitorId) return NextResponse.json({error:"Competitor is required."},{status:400});
   const competitor=await prisma.competitor.findUnique({where:{id:body.competitorId},include:{venture:true}});
   if(!competitor) return NextResponse.json({error:"Competitor not found."},{status:404});
-  const channels=[competitor.websiteUrl,competitor.instagramUrl,competitor.facebookUrl,competitor.youtubeChannelUrl].filter(Boolean).join("\n");
+  const channels=[competitor.websiteUrl,competitor.instagramUrl,competitor.facebookUrl,competitor.youtubeChannelUrl].filter(Boolean).join("\n");\n  let domain=""; try{domain=competitor.websiteUrl?new URL(competitor.websiteUrl).hostname.replace(/^www\\./,""):"";}catch{}\n  const googleTransparencyUrl=domain?`https://adstransparency.google.com/?domain=${encodeURIComponent(domain)}&region=GB`:null;
   const prompt=`Research recent, real, publicly verifiable marketing activity for this competitor.
 BUSINESS WE OPERATE: ${competitor.venture.name}
 COMPETITOR: ${competitor.name}
@@ -31,7 +31,7 @@ Return ONLY JSON:
   const now=new Date(); const saved=[];
   for(const item of items){
     let source:URL; try{source=new URL(item.sourceUrl);}catch{continue;} if(source.protocol!=="https:") continue;
-    const evidence=await prisma.intelligenceEvidence.create({data:{ventureId:competitor.ventureId,competitorId:competitor.id,competitorName:competitor.name,accountName:competitor.name,platform:item.platform||"WEB",distribution:item.distribution==="PAID"?"PAID":"ORGANIC",contentType:item.contentType||"SOCIAL_POST",format:item.contentType||"Public creative",title:item.title||`${competitor.name} public activity`,sourceUrl:source.toString(),contentText:[item.summary,item.whyItMatters? `HQ INTERPRETATION: ${item.whyItMatters}`:""].filter(Boolean).join("\n\n"),firstSeenAt:now,lastSeenAt:now,activityStatus:"Observed",provenance:"Public web research with source URL; no private competitor analytics inferred",observableSignals:{publicSignal:item.publicSignal??null,researchMethod:"web_search",privateMetricsInferred:false} as Prisma.InputJsonValue}});
+    const evidence=await prisma.intelligenceEvidence.create({data:{ventureId:competitor.ventureId,competitorId:competitor.id,competitorName:competitor.name,accountName:competitor.name,platform:item.platform||"WEB",distribution:item.distribution==="PAID"?"PAID":"ORGANIC",contentType:item.contentType||"SOCIAL_POST",format:item.contentType||"Public creative",title:item.title||`${competitor.name} public activity`,sourceUrl:source.toString(),contentText:[item.summary,item.whyItMatters? `HQ INTERPRETATION: ${item.whyItMatters}`:""].filter(Boolean).join("\n\n"),firstSeenAt:now,lastSeenAt:now,activityStatus:"Observed",provenance:"Public web research with source URL; no private competitor analytics inferred",observableSignals:{publicSignal:item.publicSignal??null,strengthSignal:item.strengthSignal??null,replicationIdea:item.replicationIdea??null,researchMethod:"web_search",privateMetricsInferred:false,googleTransparencyUrl} as Prisma.InputJsonValue}});
     saved.push(evidence);
   }
   await prisma.competitor.update({where:{id:competitor.id},data:{lastCollectedAt:now,lastCollectionError:null}});
