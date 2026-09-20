@@ -25,7 +25,8 @@ type Execution = {
   skill: { id: string; name: string; sourceFile?: string | null; sourceVersion?: string | null };
   approved?: boolean;
 };
-type CommandResult = {mode:string;title:string;summary:string;items:Array<{id:string;title:string;meta:string}>;action?:{label:string;target:string;handoff?:Record<string,string>}};\ntype WorkflowHandoff = {
+type CommandResult = {mode:string;title:string;summary:string;items:Array<{id:string;title:string;meta:string}>;action?:{label:string;target:string;handoff?:Record<string,string>}};
+type WorkflowHandoff = {
   venture?: string;
   outcome?: string;
   sourceContext?: string;
@@ -33,7 +34,12 @@ type CommandResult = {mode:string;title:string;summary:string;items:Array<{id:st
 };
 
 const ventures = ["Bubble Leisure", "Brilliant AI Automation", "FireComplianceUK", "Bankole & Associates", "TradeCompare", "Lucky Studios", "SAYAH", "Oddly", "TripleMMM"];
-const examplesByVenture: Record<string,string[]> = {\n  "Bubble Leisure":["Find winning ads","Follow up my leads","Create a campaign","What is blocking bookings?"],\n  "Brilliant AI Automation":["Find new prospects","Prepare personalised outreach","Create a client pitch","What needs following up?"],\n  "FireComplianceUK":["Find live opportunities","Match suppliers to opportunities","Prepare buyer outreach","What deadlines need attention?"],\n  "Bankole & Associates":["What is blocking my active deals?","Find new mandates","Prepare a deal follow-up","Show missing diligence"],\n};
+const examplesByVenture: Record<string,string[]> = {
+  "Bubble Leisure":["Find winning ads","Follow up my leads","Create a campaign","What is blocking bookings?"],
+  "Brilliant AI Automation":["Find new prospects","Prepare personalised outreach","Create a client pitch","What needs following up?"],
+  "FireComplianceUK":["Find live opportunities","Match suppliers to opportunities","Prepare buyer outreach","What deadlines need attention?"],
+  "Bankole & Associates":["What is blocking my active deals?","Find new mandates","Prepare a deal follow-up","Show missing diligence"],
+};
 
 export default function AskHQ({ openCreate }: { openCreate: () => void }) {
   const [venture, setVenture] = useState("Bubble Leisure");
@@ -44,7 +50,8 @@ export default function AskHQ({ openCreate }: { openCreate: () => void }) {
   const [executions, setExecutions] = useState<Array<Execution | null>>([]);
   const [activeStep, setActiveStep] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);\n  const [commandResult,setCommandResult]=useState<CommandResult|null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [commandResult,setCommandResult]=useState<CommandResult|null>(null);
 
   useEffect(() => {
     const raw = window.sessionStorage.getItem("bankole-hq:workflow-handoff");
@@ -65,7 +72,10 @@ export default function AskHQ({ openCreate }: { openCreate: () => void }) {
   const stepInput = useMemo(() => {
     if (!proposal || !currentStep) return "";
     if (activeStep > 0) return executions[activeStep - 1]?.output ?? "";
-    return [outcome, sourceContext ? `Selected source context:\n${sourceContext}` : ""].filter(Boolean).join("\n\n");
+    return [outcome, sourceContext ? `Selected source context:
+${sourceContext}` : ""].filter(Boolean).join("
+
+");
   }, [proposal, currentStep, activeStep, executions, outcome, sourceContext]);
 
   const recommend = async () => {
