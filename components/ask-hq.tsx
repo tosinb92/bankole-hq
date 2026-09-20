@@ -72,10 +72,7 @@ export default function AskHQ({ openCreate }: { openCreate: () => void }) {
   const stepInput = useMemo(() => {
     if (!proposal || !currentStep) return "";
     if (activeStep > 0) return executions[activeStep - 1]?.output ?? "";
-    return [outcome, sourceContext ? `Selected source context:
-${sourceContext}` : ""].filter(Boolean).join("
-
-");
+    return [outcome, sourceContext ? `Selected source context: ${sourceContext}` : ""].filter(Boolean).join("\\n\\n");
   }, [proposal, currentStep, activeStep, executions, outcome, sourceContext]);
 
   const recommend = async () => {
