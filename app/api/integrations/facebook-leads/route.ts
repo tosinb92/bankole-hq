@@ -19,24 +19,26 @@ async function pull(){
  return {ok:true,status:200,rows:rowsFrom(body)};
 }
 
-export async function GET(){
+async function syncRows(rows:any[]){
+ if(!process.env.DATABASE_URL)return {error:"HQ data connection is unavailable.",status:503};
+ const venture=await prisma.venture.findUnique({where:{name:"Bubble Leisure"}});
+ if(!venture)return {error:"Bubble Leisure venture is not present in HQ.",status:404};
+ let created=0,existing=0;
+ for(const x of rows){const externalId=String(x.id||"");if(!externalId)continue;const duplicate=await prisma.lead.findFirst({where:{ventureId:venture.id,requirements:{path:["facebookLeadId"],equals:externalId}}});if(duplicate){existing++;continue;}await prisma.lead.create({data:{ventureId:venture.id,customerName:x.full_name||"Facebook lead",email:x.email||null,phone:x.phone_number||null,requestedLocation:x.street_address||null,requirements:requirements(x),stage:"NEW_LEAD"}});created++;}
+ return {created,existing,status:200};
+}
+
+export async function GET(request:NextRequest){
  const result=await pull();
- return NextResponse.json({connected:result.ok,source:"Windsor.ai · Facebook Lead Ads",pageId:PAGE_ID,availableLeads:result.rows.length,message:result.ok?"Facebook Lead Ads connection is reachable.":"Facebook Lead Ads connection is not reachable.",providerStatus:(result as any).providerStatus||null},{status:result.status});
+ if(!result.ok)return NextResponse.json({connected:false,source:"Windsor.ai · Facebook Lead Ads",pageId:PAGE_ID,availableLeads:0,message:result.message,providerStatus:(result as any).providerStatus||null},{status:result.status});
+ if(new URL(request.url).searchParams.get("sync")!=="1")return NextResponse.json({connected:true,source:"Windsor.ai · Facebook Lead Ads",pageId:PAGE_ID,availableLeads:result.rows.length,message:"Facebook Lead Ads connection is reachable."});
+ const synced=await syncRows(result.rows);if((synced as any).error)return NextResponse.json({error:(synced as any).error},{status:(synced as any).status});
+ return NextResponse.json({connected:true,synced:true,source:"Facebook Instant Forms",pageId:PAGE_ID,fetched:result.rows.length,created:(synced as any).created,existing:(synced as any).existing,syncedAt:new Date().toISOString()});
 }
 
 export async function POST(request:NextRequest){
- if(!process.env.DATABASE_URL)return NextResponse.json({error:"HQ data connection is unavailable."},{status:503});
- const secret=process.env.HQ_SYNC_SECRET; if(secret && request.headers.get("x-hq-sync-secret")!==secret)return NextResponse.json({error:"Unauthorized"},{status:401});
- const result=await pull(); if(!result.ok)return NextResponse.json({error:result.message,providerStatus:(result as any).providerStatus||null},{status:result.status});
- const venture=await prisma.venture.findUnique({where:{name:"Bubble Leisure"}});
- if(!venture)return NextResponse.json({error:"Bubble Leisure venture is not present in HQ."},{status:404});
- let created=0,existing=0;
- for(const x of result.rows){
-  const externalId=String(x.id||""); if(!externalId)continue;
-  const duplicate=await prisma.lead.findFirst({where:{ventureId:venture.id,requirements:{path:["facebookLeadId"],equals:externalId}}});
-  if(duplicate){existing++;continue;}
-  await prisma.lead.create({data:{ventureId:venture.id,customerName:x.full_name||"Facebook lead",email:x.email||null,phone:x.phone_number||null,requestedLocation:x.street_address||null,requirements:requirements(x),stage:"NEW_LEAD"}});
-  created++;
- }
- return NextResponse.json({synced:true,source:"Facebook Instant Forms",pageId:PAGE_ID,fetched:result.rows.length,created,existing,syncedAt:new Date().toISOString()});
+ const secret=process.env.HQ_SYNC_SECRET;if(secret&&request.headers.get("x-hq-sync-secret")!==secret)return NextResponse.json({error:"Unauthorized"},{status:401});
+ const result=await pull();if(!result.ok)return NextResponse.json({error:result.message,providerStatus:(result as any).providerStatus||null},{status:result.status});
+ const synced=await syncRows(result.rows);if((synced as any).error)return NextResponse.json({error:(synced as any).error},{status:(synced as any).status});
+ return NextResponse.json({synced:true,source:"Facebook Instant Forms",pageId:PAGE_ID,fetched:result.rows.length,created:(synced as any).created,existing:(synced as any).existing,syncedAt:new Date().toISOString()});
 }
