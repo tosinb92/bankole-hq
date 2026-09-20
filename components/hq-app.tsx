@@ -54,7 +54,7 @@ export default function HQApp() {
   }, [rule, venueCost, travel]);
   const toggleRule = (id: string) => setRules(prev => prev.map(r => r.id === id ? { ...r, active: !r.active } : r));
 
-  return <main className="shell">
+  useEffect(()=>{const handler=(event:Event)=>{const detail=(event as CustomEvent<{target?:string;venture?:string}>).detail;if(!detail?.target)return;if(detail.target==="Intelligence"||detail.target==="Create"||detail.target==="Bubble Operations"||detail.target==="BAA Operations"||detail.target==="Fire Operations"||detail.target==="BA Operations"){setVenture(null);setView(detail.target);}};window.addEventListener("hq:navigate",handler);return()=>window.removeEventListener("hq:navigate",handler);},[]);\n\n  return <main className="shell">
     <aside className="sidebar"><div className="brand"><span className="key">◆</span> BANKOLE <b>HQ</b></div><p className="private">PRIVATE OPERATING SYSTEM</p>
       <nav>{nav.map(item => <button className={view === item && !venture ? "nav active" : "nav"} onClick={() => {setView(item);setVenture(null)}} key={item}>{item}</button>)}</nav>
       <div className="side-foot"><span className="pulse"/>HQ online<br/><small>Private workspace</small></div>
