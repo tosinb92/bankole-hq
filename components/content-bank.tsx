@@ -34,6 +34,7 @@ export default function ContentBank({initialBrand,initialObjective,onMake}:{init
   finally{setBusy(false);}
  };
  const copy=(x:GeneratedPiece)=>navigator.clipboard?.writeText(`${x.hook}\n\n${x.caption}\n\nCTA: ${x.cta}\n\nPRODUCTION: ${x.productionBrief}`);
+ const make=(x:GeneratedPiece)=>{ const i=pieces.indexOf(x); const brief=`${x.hook}\n\n${x.concept}\n\nCaption: ${x.caption}\nCTA: ${x.cta}\n\nProduction: ${x.productionBrief}`; if(i>=0)setStatus(s=>({...s,[i]:"IN PRODUCTION"})); onMake?.(brand,x.title,brief); };
 
  return <><section className="exec-hero"><div><p className="eyebrow">CREATE · SOCIAL CONTENT ENGINE</p><h2>Tell HQ the result you want. Get content you can actually post.</h2><p>Choose a business and outcome. HQ uses that business's approved Skills to build the strategy, hooks, captions and production instructions. You should not need to understand or manage the Skills yourself.</p></div><strong>{pieces.length} ready ideas</strong></section>
  <section className="panel wide"><div className="panel-title"><h2>1. What are we trying to achieve?</h2><span>{brand}</span></div>
