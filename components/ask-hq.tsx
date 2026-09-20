@@ -33,16 +33,11 @@ type WorkflowHandoff = {
 };
 
 const ventures = ["Bubble Leisure", "Brilliant AI Automation", "FireComplianceUK", "Bankole & Associates", "TradeCompare", "Lucky Studios", "SAYAH", "Oddly", "TripleMMM"];
-const examples = [
-  "Find me new Bubble Leisure paid-social opportunities from competitor intelligence",
-  "Create a Bubble Leisure paid-social campaign",
-  "Turn this TripleMMM interview into a month of content",
-  "Build a SAYAH release campaign",
-];
+const examplesByVenture: Record<string,string[]> = {\n  "Bubble Leisure":["Find winning ads","Follow up my leads","Create a campaign","What is blocking bookings?"],\n  "Brilliant AI Automation":["Find new prospects","Prepare personalised outreach","Create a client pitch","What needs following up?"],\n  "FireComplianceUK":["Find live opportunities","Match suppliers to opportunities","Prepare buyer outreach","What deadlines need attention?"],\n  "Bankole & Associates":["What is blocking my active deals?","Find new mandates","Prepare a deal follow-up","Show missing diligence"],\n};
 
 export default function AskHQ({ openCreate }: { openCreate: () => void }) {
   const [venture, setVenture] = useState("Bubble Leisure");
-  const [outcome, setOutcome] = useState(examples[0]);
+  const [outcome, setOutcome] = useState("");
   const [sourceContext, setSourceContext] = useState("");
   const [sourceEvidenceIds, setSourceEvidenceIds] = useState<string[]>([]);
   const [proposal, setProposal] = useState<Proposal | null>(null);
@@ -167,12 +162,12 @@ export default function AskHQ({ openCreate }: { openCreate: () => void }) {
         <div className="preset-list">{examples.map(item => <button key={item} onClick={() => { setOutcome(item); if (item.includes("TripleMMM")) setVenture("TripleMMM"); else if (item.includes("SAYAH")) setVenture("SAYAH"); else setVenture("Bubble Leisure"); }}>{item}<b>→</b></button>)}</div>
         {sourceContext && <label>Selected intelligence context<textarea rows={6} value={sourceContext} onChange={event => setSourceContext(event.target.value)} /></label>}
         <p className="note">{sourceEvidenceIds.length ? `${sourceEvidenceIds.length} selected evidence record(s) will be included. No unselected competitor evidence is sent.` : "No competitor evidence selected. HQ can still route a workflow from your outcome and approved skills."}</p>
-        <button className="primary" onClick={recommend} disabled={!!busy || !outcome.trim()}>{busy === "recommend" ? "Working out the best approach…" : "Start →"}</button>
+        <button className="primary" onClick={recommend} disabled={!!busy || !outcome.trim()}>{busy === "recommend" ? "Working…" : "Do it →"}</button>
       </div>
       <div className="creative-results">
         <section className="panel">
-          <div className="panel-title"><h2>HQ plan</h2><span>{proposal ? `${proposal.steps.length} step(s)` : "Waiting for your instruction"}</span></div>
-          {!proposal && <div className="create-empty">Tell HQ what result you want. The technical workflow stays underneath unless you need to inspect it.</div>}
+          <div className="panel-title"><h2>{proposal ? "HQ is ready" : "Results"}</h2><span>{proposal ? `${proposal.steps.length} action${proposal.steps.length===1?"":"s"}` : "Waiting"}</span></div>
+          {!proposal && <div className="create-empty">Tell HQ what you want done. Your results will appear here.</div>}
           {proposal && <><p>{proposal.summary}</p><p className="note">{proposal.evidenceNote}</p><div className="workflow-step-list">{proposal.steps.map((step, index) => <article key={step.skillId + index} className={index === activeStep ? "opportunity-card selected-preset" : "opportunity-card"}><b>{index + 1}. {step.reason}</b><small>{executions[index]?.approved ? "Completed" : index === activeStep ? "Ready" : "Queued"}</small><button onClick={() => setActiveStep(index)}>Open step</button></article>)}</div></>}
         </section>
         {currentStep && <section className="panel intelligence-result">
