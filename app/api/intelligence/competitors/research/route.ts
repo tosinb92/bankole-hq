@@ -5,37 +5,43 @@ import { prisma } from "@/lib/server/prisma";
 export const runtime = "nodejs";
 export const maxDuration = 55;
 
-export async function POST(request: Request) {
-  if (!process.env.DATABASE_URL) return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
-  if (!process.env.OPENAI_API_KEY) return NextResponse.json({error:"Competitor research needs the configured AI research provider."},{status:503});
-  const body=await request.json().catch(()=>({})) as { competitorId?:string };
+type ResearchItem = { title?:string; sourceUrl?:string; platform?:string; distribution?:string; contentType?:string; summary?:string; publicSignal?:string|null; strengthSignal?:string|null; replicationIdea?:string|null; whyItMatters?:string|null };
+
+async function research(input:string){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),18000);
+  try{
+    const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",signal:controller.signal,headers:{"Content-Type":"application/json","Authorization":`Bearer ${process.env.OPENAI_API_KEY}`},body:JSON.stringify({model:"gpt-5-mini",tools:[{type:"web_search"}],input,max_output_tokens:1200})});
+    const raw=await response.json().catch(()=>({}));
+    if(!response.ok) return {items:[] as ResearchItem[],error:raw?.error?.message||`Provider ${response.status}`};
+    const text=(raw.output||[]).flatMap((x:any)=>x.content||[]).map((x:any)=>x.text||"").join("").trim().replace(/^```json\s*/i,"").replace(/```$/,"").trim();
+    try{const parsed=JSON.parse(text);return {items:(Array.isArray(parsed.evidence)?parsed.evidence:[]).slice(0,3) as ResearchItem[]};}catch{return {items:[] as ResearchItem[],error:"Could not structure results"};}
+  }catch(e){return {items:[] as ResearchItem[],error:e instanceof Error?e.message:"Research failed"};}finally{clearTimeout(timer);}
+}
+
+export async function POST(request:Request){
+  if(!process.env.DATABASE_URL) return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
+  if(!process.env.OPENAI_API_KEY) return NextResponse.json({error:"Competitor research needs the configured AI research provider."},{status:503});
+  const body=await request.json().catch(()=>({})) as {competitorId?:string};
   if(!body.competitorId) return NextResponse.json({error:"Competitor is required."},{status:400});
   const competitor=await prisma.competitor.findUnique({where:{id:body.competitorId},include:{venture:true}});
   if(!competitor) return NextResponse.json({error:"Competitor not found."},{status:404});
+  let domain=""; try{domain=competitor.websiteUrl?new URL(competitor.websiteUrl).hostname.replace(/^www\./,""):"";}catch{}
   const channels=[competitor.websiteUrl,competitor.instagramUrl,competitor.facebookUrl,competitor.youtubeChannelUrl].filter(Boolean).join("\n");
-  let domain=""; try{domain=competitor.websiteUrl?new URL(competitor.websiteUrl).hostname.replace(/^www\\./,""):"";}catch{}
-  const googleTransparencyUrl=domain?`https://adstransparency.google.com/?domain=${encodeURIComponent(domain)}&region=GB`:null;
-  const prompt=`Research recent, real, publicly verifiable marketing activity for this competitor.
-BUSINESS WE OPERATE: ${competitor.venture.name}
-COMPETITOR: ${competitor.name}
-KNOWN OFFICIAL CHANNELS:
-${channels || "Find official public sources yourself."}
-
-Find up to 6 useful recent public examples: organic social posts/videos OR commercial advertising/campaign creative. Prioritise official Instagram, Facebook, YouTube, the competitor website, and Meta Ad Library where publicly verifiable. Never invent URLs, engagement numbers, performance, ROAS, saves, watch time or conversions. Only report a metric if a public source visibly supports it.
-
-Return ONLY JSON:
-{"evidence":[{"title":"...","sourceUrl":"https://...","platform":"INSTAGRAM|META|YOUTUBE|WEB","distribution":"ORGANIC|PAID","contentType":"REEL|SOCIAL_POST|VIDEO|CAMPAIGN|WEBSITE_PAGE","summary":"what the creative/message actually does","publicSignal":"specific observable fact, or null","whyItMatters":"short commercial interpretation"}]}`;
-  const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${process.env.OPENAI_API_KEY}`},body:JSON.stringify({model:"gpt-5-mini",tools:[{type:"web_search"}],input:prompt,max_output_tokens:2200})});
-  const raw=await response.json().catch(()=>({}));
-  if(!response.ok){const detail=raw?.error?.message||`Provider returned ${response.status}`; console.error("competitor-research-provider",response.status,detail); return NextResponse.json({error:"HQ could not research this competitor right now."},{status:502});}
-  const text=(raw.output||[]).flatMap((x:any)=>x.content||[]).map((x:any)=>x.text||"").join("").trim().replace(/^```json\s*/i,"").replace(/```$/,"").trim();
-  let items:any[]=[]; try{const parsed=JSON.parse(text);items=Array.isArray(parsed.evidence)?parsed.evidence.slice(0,6):[];}catch{return NextResponse.json({error:"Research completed but could not be structured safely."},{status:502});}
-  const now=new Date(); const saved=[];
-  for(const item of items){
-    let source:URL; try{source=new URL(item.sourceUrl);}catch{continue;} if(source.protocol!=="https:") continue;
-    const evidence=await prisma.intelligenceEvidence.create({data:{ventureId:competitor.ventureId,competitorId:competitor.id,competitorName:competitor.name,accountName:competitor.name,platform:item.platform||"WEB",distribution:item.distribution==="PAID"?"PAID":"ORGANIC",contentType:item.contentType||"SOCIAL_POST",format:item.contentType||"Public creative",title:item.title||`${competitor.name} public activity`,sourceUrl:source.toString(),contentText:[item.summary,item.whyItMatters? `HQ INTERPRETATION: ${item.whyItMatters}`:""].filter(Boolean).join("\n\n"),firstSeenAt:now,lastSeenAt:now,activityStatus:"Observed",provenance:"Public web research with source URL; no private competitor analytics inferred",observableSignals:{publicSignal:item.publicSignal??null,strengthSignal:item.strengthSignal??null,replicationIdea:item.replicationIdea??null,researchMethod:"web_search",privateMetricsInferred:false,googleTransparencyUrl} as Prisma.InputJsonValue}});
+  const rules=`Business: ${competitor.venture.name}. Competitor: ${competitor.name}. Known channels:\n${channels}. Return ONLY JSON {"evidence":[{"title":"...","sourceUrl":"https://...","platform":"...","distribution":"PAID|ORGANIC","contentType":"...","summary":"...","publicSignal":"...","strengthSignal":"LOW|MEDIUM|HIGH","replicationIdea":"a distinct test for our business, not copied protected creative","whyItMatters":"..."}]}. Use only real public URLs. Never invent spend, conversions, CPA, ROAS, profit, saves or private metrics.`;
+  const jobs=[
+    {source:"Google Ads",prompt:`${rules}\nFind up to 3 recent publicly verifiable Google advertising examples/signals. Search Google Ads Transparency Center, Search/YouTube ad evidence and advertiser/domain references. Prefer paid creative; do not substitute a normal homepage unless it directly documents a campaign.`},
+    {source:"Meta & social",prompt:`${rules}\nFind up to 3 recent publicly verifiable Meta/Facebook/Instagram or YouTube campaign/post examples. Prioritise Meta Ad Library and official social URLs. Prefer actual post/ad/video URLs over homepages.`}
+  ];
+  const results=await Promise.all(jobs.map(async j=>({source:j.source,...await research(j.prompt)})));
+  const now=new Date(); const saved=[]; const seen=new Set<string>();
+  for(const result of results) for(const item of result.items){
+    if(!item.sourceUrl||seen.has(item.sourceUrl)) continue;
+    let source:URL; try{source=new URL(item.sourceUrl);}catch{continue;} if(source.protocol!=="https:") continue; seen.add(item.sourceUrl);
+    const evidence=await prisma.intelligenceEvidence.create({data:{ventureId:competitor.ventureId,competitorId:competitor.id,competitorName:competitor.name,accountName:competitor.name,platform:item.platform||"WEB",distribution:item.distribution==="PAID"?"PAID":"ORGANIC",contentType:item.contentType||"CAMPAIGN",format:item.contentType||"Public campaign",title:item.title||`${competitor.name} campaign`,sourceUrl:source.toString(),contentText:[item.summary,item.whyItMatters?`WHY IT MATTERS: ${item.whyItMatters}`:"",item.replicationIdea?`TEST FOR US: ${item.replicationIdea}`:""].filter(Boolean).join("\n\n"),firstSeenAt:now,lastSeenAt:now,activityStatus:"Observed",provenance:`${result.source} public research; no private competitor analytics inferred`,observableSignals:{publicSignal:item.publicSignal??null,strengthSignal:item.strengthSignal??null,replicationIdea:item.replicationIdea??null,researchMethod:"web_search",privateMetricsInferred:false} as Prisma.InputJsonValue}});
     saved.push(evidence);
   }
-  await prisma.competitor.update({where:{id:competitor.id},data:{lastCollectedAt:now,lastCollectionError:null}});
-  return NextResponse.json({evidence:saved,notice:`Added ${saved.length} source-backed public examples for ${competitor.name}.`},{status:201});
+  const status=results.map(r=>({source:r.source,status:r.items.length?"complete":"unavailable",found:r.items.length,error:r.error||null}));
+  await prisma.competitor.update({where:{id:competitor.id},data:{lastCollectedAt:now,lastCollectionError:saved.length?null:"No campaign evidence returned"}});
+  return NextResponse.json({evidence:saved,status,notice:saved.length?`Added ${saved.length} campaign examples. ${status.map(s=>`${s.source}: ${s.found}`).join(" · ")}`:"No verified campaigns were returned this time. Existing evidence was kept."},{status:200});
 }
