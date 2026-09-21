@@ -16,7 +16,8 @@ async function sendTest() {
     let buffer = ""; let step = 0;
     const fail = (e: unknown) => { try { socket.destroy(); } catch {} reject(e instanceof Error ? e : new Error(String(e))); };
     const send = (s: string) => socket.write(s + "\r\n");
-    const auth = Buffer.from("\0" + user + "\0" + pass).toString("base64");
+    const authLogin = Buffer.from(user).toString("base64");
+    const authPassword = Buffer.from(pass).toString("base64");
     const msg = [
       "From: FireComplianceUK <" + user + ">",
       "To: Tosin Bankole <" + to + ">",
@@ -38,14 +39,16 @@ async function sendTest() {
       buffer += chunk.toString();
       if (!/\r\n$/.test(buffer)) return;
       const line = buffer; buffer = "";
-      if (/^[45]/.test(line)) return fail(new Error("SMTP: " + line.trim()));
+      if (/^[45]/.test(line) && !(step === 2 && /^334/.test(line)) && !(step === 3 && /^334/.test(line))) return fail(new Error("SMTP: " + line.trim()));
       if (step === 0 && /^220/.test(line)) { step=1; send("EHLO bankolehq"); return; }
-      if (step === 1 && /^250[ -]/.test(line) && /250 /.test(line)) { step=2; send("AUTH PLAIN " + auth); return; }
-      if (step === 2 && /^235/.test(line)) { step=3; send("MAIL FROM:<"+user+">"); return; }
-      if (step === 3 && /^250/.test(line)) { step=4; send("RCPT TO:<"+to+">"); return; }
-      if (step === 4 && /^250/.test(line)) { step=5; send("DATA"); return; }
-      if (step === 5 && /^354/.test(line)) { step=6; send(msg+"\r\n."); return; }
-      if (step === 6 && /^250/.test(line)) { send("QUIT"); resolve(); }
+      if (step === 1 && /^250[ -]/.test(line) && /250 /.test(line)) { step=2; send("AUTH LOGIN"); return; }
+      if (step === 2 && /^334/.test(line)) { step=3; send(authLogin); return; }
+      if (step === 3 && /^334/.test(line)) { step=4; send(authPassword); return; }
+      if (step === 4 && /^235/.test(line)) { step=5; send("MAIL FROM:<"+user+">"); return; }
+      if (step === 5 && /^250/.test(line)) { step=6; send("RCPT TO:<"+to+">"); return; }
+      if (step === 6 && /^250/.test(line)) { step=7; send("DATA"); return; }
+      if (step === 7 && /^354/.test(line)) { step=8; send(msg+"\r\n."); return; }
+      if (step === 8 && /^250/.test(line)) { send("QUIT"); resolve(); }
     });
   });
 }
