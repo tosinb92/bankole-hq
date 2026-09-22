@@ -9,7 +9,8 @@ export async function POST(req:Request){
  const ventureName=b.venture?.trim()||"Bubble Leisure"; const venture=await prisma.venture.findUnique({where:{name:ventureName}});
  if(!venture)return NextResponse.json({error:`${ventureName} is not connected to the HQ database yet.`},{status:404});
  const q=lower(command);
- const recordCommand=async(summary:string,outcome:string)=>{try{await prisma.action.create({data:{ventureId:venture.id,title:`HQ: ${command.slice(0,120)}`,kind:"RUN_SKILL",lane:"AI_CAN_HANDLE",urgency:3,recommendation:summary,executionState:"Completed",outcome}});return true;}catch{return false;}};
+ const laneFor=(text:string)=>/approve|review|authoris|authorize/.test(text)?"NEEDS_APPROVAL":/waiting|blocked|vercel|external/.test(text)?"WAITING_EXTERNAL":/i need|tosin|call|attend|present|decision/.test(text)?"NEEDS_ME":"AI_CAN_HANDLE";
+ const recordCommand=async(summary:string,outcome:string)=>{try{await prisma.action.create({data:{ventureId:venture.id,title:`HQ: ${command.slice(0,120)}`,kind:"RUN_SKILL",lane:laneFor(q),urgency:3,recommendation:summary,executionState:"Completed",outcome}});return true;}catch{return false;}};
  const respond=async(payload:Record<string,unknown>,summary:string,outcome:string)=>NextResponse.json({...payload,recorded:await recordCommand(summary,outcome)});
  if(/lead|enquir|booking|quote|customer/.test(q)){
    const leads=await prisma.lead.findMany({where:{ventureId:venture.id,stage:{notIn:["WON","LOST"]}},orderBy:{updatedAt:"desc"},take:12,include:{quotes:{orderBy:{createdAt:"desc"},take:1}}});
