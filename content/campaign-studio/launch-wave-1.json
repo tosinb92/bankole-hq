@@ -1,0 +1,46 @@
+{
+  "goal": "10 qualified leads per brand",
+  "createdAt": "2026-09-23",
+  "posts": [
+    {
+      "brand": "BAA",
+      "channel": "Instagram",
+      "format": "Static/Reel cover",
+      "hook": "Your inbox is not a CRM.",
+      "caption": "Every missed enquiry is a potential missed sale. BAA builds practical automation systems that capture enquiries, route them to the right person and keep follow-up moving—with human approval where it matters. Want to see what that could look like for your business? Request an automation blueprint through the link in our bio. #BusinessAutomation #SmallBusinessGrowth #AIAutomation",
+      "cta": "Request an automation blueprint",
+      "asset": "Use uploaded BAA female presenter avatar; branded office visual",
+      "status": "Ready for creative review; not published"
+    },
+    {
+      "brand": "Bubble Leisure",
+      "channel": "Facebook and Instagram",
+      "format": "Static/Reel cover",
+      "hook": "This is not a normal birthday party.",
+      "caption": "Turn the next birthday into a day they'll talk about. Bubble football, Nerf battles and team challenges brought to your event. Tell us your preferred date, location and group size and we'll help you plan the fun. Enquire through our website to check your date. #BubbleFootball #KidsParties #BirthdayPartyIdeas",
+      "cta": "Check your party date",
+      "asset": "Use uploaded Bubble Leisure child presenter avatar; no implication that depicted child is a real customer",
+      "status": "Ready for creative review; not published"
+    },
+    {
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn and Facebook",
+      "format": "Static",
+      "hook": "Managing fire-door compliance across multiple properties?",
+      "caption": "FireComplianceUK connects property managers and facilities teams with fire-safety service providers for inspections, repairs and other compliance requirements. Tell us what you need, where the properties are and your required timeframe through our website. Providers can also register to be considered for suitable opportunities. #FireDoors #FacilitiesManagement #FireSafety",
+      "cta": "Submit a compliance requirement",
+      "asset": "Use uploaded high-vis male presenter avatar; do not imply certified inspector status",
+      "status": "Ready for creative review; not published"
+    },
+    {
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn and Instagram",
+      "format": "Founder-led static",
+      "hook": "An investor introduction starts long before the meeting.",
+      "caption": "Businesses seeking capital need a clear proposition, suitable documentation and a well-defined mandate. Bankole & Associates works with businesses to understand their financing requirements and prepare for relevant investor discussions. If you're exploring a transaction, start with a confidential mandate enquiry. #InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Use existing approved Tosin founder portrait; do not substitute generated portrait",
+      "status": "Ready for creative review; not published"
+    }
+  ]
+}
