@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 export const runtime="nodejs";
 export const maxDuration=60;
 const bucket="campaign-assets";
-const config=()=>({url:process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL||"",key:process.env.SUPABASE_SERVICE_ROLE_KEY||""});
+const config=()=>{const raw=process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL||"";const url=raw.replace(/\s+/g,"").replace(/\/rest\/v1\/?$/,"").replace(/\/+$/,"");if(url&&!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url))throw Error("Invalid SUPABASE_URL: copy the project URL without /rest/v1/ or spaces.");return {url,key:process.env.SUPABASE_SERVICE_ROLE_KEY||""};};
 const safe=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,80);
 async function storage(method:string,path:string,body?:BodyInit,contentType?:string){const {url,key}=config();if(!url||!key)throw Error("Supabase storage environment variables are not configured.");return fetch(url+"/storage/v1/"+path,{method,headers:{apikey:key,Authorization:"Bearer "+key,...(contentType?{"Content-Type":contentType}:{})},body,cache:"no-store"});}
 async function ensureBucket(){const res=await storage("POST","bucket",JSON.stringify({id:bucket,name:bucket,public:true,file_size_limit:10485760}),"application/json");if(!res.ok&&res.status!==409){const t=await res.text();if(!/already exists|duplicate/i.test(t))throw Error("Could not create campaign media bucket: "+t.slice(0,180));}}
