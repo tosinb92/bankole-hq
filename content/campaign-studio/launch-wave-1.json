@@ -3,89 +3,786 @@
   "createdAt": "2026-09-23",
   "posts": [
     {
+      "postId": "baa-01",
       "brand": "BAA",
-      "channel": "Instagram",
-      "format": "Static/Reel cover",
-      "hook": "Your inbox is not a CRM.",
-      "caption": "Your business shouldn't depend on you doing everything. 🚀\n\nImagine every customer enquiry being captured, followed up and organised automatically—even when you're busy.\n\nAt Brilliant AI Automations, we build custom AI systems that help businesses automate sales, customer service and everyday operations.\n\nWant to discover what we could automate in your business?\n\nDM us BLUEPRINT for a free initial discussion.\n\n#AIAutomation #BusinessAutomation #SmallBusinessGrowth #ArtificialIntelligence",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Static",
+      "hook": "Your inbox is not a CRM",
+      "caption": "Your inbox is not a CRM\n\nCapture enquiries automatically, organise follow-up and stop losing opportunities between inboxes.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
       "cta": "DM BLUEPRINT",
-      "asset": "Use uploaded BAA female presenter avatar; branded office visual",
-      "status": "Ready for creative review; not published",
-      "postId": "baa-launch-1"
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Published initial avatar-based Instagram launch post; replacement creative pending",
+      "publishedPlatforms": [
+        "Instagram"
+      ],
+      "leadTarget": 10
     },
     {
+      "postId": "baa-02",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Reel",
+      "hook": "What happens to leads after 6pm?",
+      "caption": "What happens to leads after 6pm?\n\nBuild an enquiry workflow that keeps working when your team finishes for the day.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "baa-03",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Carousel",
+      "hook": "3 tasks you can automate this week",
+      "caption": "3 tasks you can automate this week\n\nEnquiry capture, lead routing and follow-up reminders are practical places to start.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "baa-04",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Static",
+      "hook": "Your CRM should update itself",
+      "caption": "Your CRM should update itself\n\nReduce manual copying between forms, email and customer records.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "baa-05",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Static",
+      "hook": "Stop paying for disconnected tools",
+      "caption": "Stop paying for disconnected tools\n\nConnect the systems your team already uses before adding more software.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "baa-06",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Carousel",
+      "hook": "What would 5 hours back mean?",
+      "caption": "What would 5 hours back mean?\n\nIdentify repetitive admin and decide which tasks deserve automation.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "baa-07",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Static",
+      "hook": "A chatbot is not a business system",
+      "caption": "A chatbot is not a business system\n\nA useful automation connects conversations to records, tasks and human decisions.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "baa-08",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Static",
+      "hook": "Never lose a warm enquiry",
+      "caption": "Never lose a warm enquiry\n\nCreate a reliable handoff from first contact to a real sales conversation.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "baa-09",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Carousel",
+      "hook": "Automation with a human in control",
+      "caption": "Automation with a human in control\n\nSet approval steps for important messages, quotes and customer decisions.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "baa-10",
+      "brand": "BAA",
+      "channel": "Instagram, LinkedIn, Facebook",
+      "platforms": [
+        "Instagram",
+        "LinkedIn",
+        "Facebook"
+      ],
+      "format": "Reel",
+      "hook": "Get your automation blueprint",
+      "caption": "Get your automation blueprint\n\nTell us your bottleneck and request an initial automation discussion.\n\nDM BLUEPRINT.\n\n#BusinessAutomation #AIAutomation #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Unique branded campaign artwork featuring approved BAA presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-01",
       "brand": "Bubble Leisure",
-      "channel": "Facebook and Instagram",
-      "format": "Static/Reel cover",
-      "hook": "This is not a normal birthday party.",
-      "caption": "Turn the next birthday into a day they'll talk about. Bubble football, Nerf battles and team challenges brought to your event. Tell us your preferred date, location and group size and we'll help you plan the fun. Enquire through our website to check your date. #BubbleFootball #KidsParties #BirthdayPartyIdeas",
-      "cta": "Check your party date",
-      "asset": "Use uploaded Bubble Leisure child presenter avatar; no implication that depicted child is a real customer",
-      "status": "Ready for creative review; not published"
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Static",
+      "hook": "A birthday they will talk about",
+      "caption": "A birthday they will talk about\n\nBring high-energy bubble football to your next birthday celebration.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
     },
     {
+      "postId": "bubble-leisure-02",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Reel",
+      "hook": "Which party team wins?",
+      "caption": "Which party team wins?\n\nPlan a bubble football match that gets everyone involved.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-03",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Carousel",
+      "hook": "Nerf battle or bubble football?",
+      "caption": "Nerf battle or bubble football?\n\nChoose the activity that fits your group and venue.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-04",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Static",
+      "hook": "Your party, sorted",
+      "caption": "Your party, sorted\n\nTell us your date, location and group size to start planning.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-05",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Static",
+      "hook": "Make the whole group part of it",
+      "caption": "Make the whole group part of it\n\nActivities designed around shared fun and team challenges.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-06",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Carousel",
+      "hook": "The weekend party checklist",
+      "caption": "The weekend party checklist\n\nChoose your date, activity, venue and number of guests.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-07",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Static",
+      "hook": "A party beyond the usual",
+      "caption": "A party beyond the usual\n\nSwap the standard party routine for active games and challenges.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-08",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Static",
+      "hook": "Two activities, one celebration",
+      "caption": "Two activities, one celebration\n\nAsk about combining bubble football and Nerf for your event.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-09",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Carousel",
+      "hook": "Planning a school group event?",
+      "caption": "Planning a school group event?\n\nDiscuss group activities and event requirements with our team.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bubble-leisure-10",
+      "brand": "Bubble Leisure",
+      "channel": "Instagram, Facebook, TikTok",
+      "platforms": [
+        "Instagram",
+        "Facebook",
+        "TikTok"
+      ],
+      "format": "Reel",
+      "hook": "Check your party date",
+      "caption": "Check your party date\n\nSend your location, date and group size for an enquiry.\n\nEnquire to check your date.\n\n#BubbleFootball #KidsParties #GroupActivities",
+      "cta": "Enquire to check your date",
+      "asset": "Unique branded campaign artwork featuring approved Bubble Leisure presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-01",
       "brand": "FireComplianceUK",
-      "channel": "LinkedIn and Facebook",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
       "format": "Static",
-      "hook": "Managing fire-door compliance across multiple properties?",
-      "caption": "FireComplianceUK connects property managers and facilities teams with fire-safety service providers for inspections, repairs and other compliance requirements. Tell us what you need, where the properties are and your required timeframe through our website. Providers can also register to be considered for suitable opportunities. #FireDoors #FacilitiesManagement #FireSafety",
-      "cta": "Submit a compliance requirement",
-      "asset": "Use uploaded high-vis male presenter avatar; do not imply certified inspector status",
-      "status": "Ready for creative review; not published"
+      "hook": "Managing fire doors across sites?",
+      "caption": "Managing fire doors across sites?\n\nTell us the number and location of properties and the services you require.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
     },
     {
+      "postId": "firecomplianceuk-02",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Reel",
+      "hook": "Need a fire-door inspection?",
+      "caption": "Need a fire-door inspection?\n\nSubmit your site requirements to start sourcing suitable providers.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-03",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Carousel",
+      "hook": "One place for multiple compliance needs",
+      "caption": "One place for multiple compliance needs\n\nExplore support for fire doors and other fire-safety service requirements.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-04",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Static",
+      "hook": "Facilities managers: simplify sourcing",
+      "caption": "Facilities managers: simplify sourcing\n\nSubmit a clear brief with location, timeframe and scope.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-05",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Static",
+      "hook": "Service providers: register your expertise",
+      "caption": "Service providers: register your expertise\n\nRegister your service areas and capabilities to be considered for opportunities.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-06",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Carousel",
+      "hook": "Repair or replacement?",
+      "caption": "Repair or replacement?\n\nStart with the right inspection and scope before deciding on works.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-07",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Static",
+      "hook": "Preparing for a property programme?",
+      "caption": "Preparing for a property programme?\n\nShare your planned work and required delivery window.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-08",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Static",
+      "hook": "Have multiple locations?",
+      "caption": "Have multiple locations?\n\nTell us your portfolio footprint and the services needed.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-09",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Carousel",
+      "hook": "Quote requests without endless back-and-forth",
+      "caption": "Quote requests without endless back-and-forth\n\nProvide scope, access and timing details upfront.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "firecomplianceuk-10",
+      "brand": "FireComplianceUK",
+      "channel": "LinkedIn, Facebook, Instagram",
+      "platforms": [
+        "LinkedIn",
+        "Facebook",
+        "Instagram"
+      ],
+      "format": "Reel",
+      "hook": "Bring us your next requirement",
+      "caption": "Bring us your next requirement\n\nSubmit your fire-safety service requirement through our website.\n\nSubmit a requirement or register as a provider.\n\n#FireSafety #FacilitiesManagement #FireDoors",
+      "cta": "Submit a requirement or register as a provider",
+      "asset": "Unique branded campaign artwork featuring approved FireComplianceUK presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bankole-associates-01",
       "brand": "Bankole & Associates",
-      "channel": "LinkedIn and Instagram",
-      "format": "Founder-led static",
-      "hook": "An investor introduction starts long before the meeting.",
-      "caption": "Businesses seeking capital need a clear proposition, suitable documentation and a well-defined mandate. Bankole & Associates works with businesses to understand their financing requirements and prepare for relevant investor discussions. If you're exploring a transaction, start with a confidential mandate enquiry. #InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
+      "format": "Static",
+      "hook": "An introduction starts before the meeting",
+      "caption": "An introduction starts before the meeting\n\nA clear proposition and supporting documents help structure investor discussions.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
       "cta": "Discuss a mandate",
-      "asset": "Use existing approved Tosin founder portrait; do not substitute generated portrait",
-      "status": "Ready for creative review; not published"
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
     },
     {
-      "brand": "BAA",
-      "channel": "Instagram",
-      "format": "Static",
-      "hook": "What happens to enquiries after 6pm?",
-      "caption": "A potential customer messages after hours. Nobody replies until tomorrow. By then, they may have moved on.\n\nBAA builds enquiry capture and follow-up workflows that help your business respond consistently without keeping you glued to your phone.\n\nDM BLUEPRINT and tell us where your enquiries come from.\n\n#AIAutomation #LeadManagement #SmallBusiness",
-      "cta": "DM BLUEPRINT",
-      "asset": "Use approved BAA presenter avatar; create distinct creative before publishing",
-      "status": "Draft · Not published",
-      "postId": "baa-launch-2"
+      "postId": "bankole-associates-02",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
+      "format": "Reel",
+      "hook": "What is your capital requirement?",
+      "caption": "What is your capital requirement?\n\nDefine the amount, use of funds and transaction objectives.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
     },
     {
-      "brand": "BAA",
-      "channel": "Instagram",
-      "format": "Static",
-      "hook": "Three repetitive tasks you could automate",
-      "caption": "1. Capturing new enquiries from forms and messages.\n2. Routing leads to the right person.\n3. Sending timely follow-up reminders.\n\nYour workflow should fit your business—not the other way around.\n\nDM BLUEPRINT to discuss your biggest bottleneck.\n\n#BusinessAutomation #WorkflowAutomation #AI",
-      "cta": "DM BLUEPRINT",
-      "asset": "Use approved BAA presenter avatar; create distinct creative before publishing",
-      "status": "Draft · Not published",
-      "postId": "baa-launch-3"
+      "postId": "bankole-associates-03",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
+      "format": "Carousel",
+      "hook": "Your data room tells your story",
+      "caption": "Your data room tells your story\n\nOrganise key business, financial and legal materials for review.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
     },
     {
-      "brand": "BAA",
-      "channel": "Instagram",
+      "postId": "bankole-associates-04",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
       "format": "Static",
-      "hook": "A CRM is only useful when someone updates it",
-      "caption": "Leads scattered across email, forms and messages make follow-up harder than it needs to be.\n\nBAA can connect your existing tools so new enquiries are recorded and routed automatically, with human approval for important decisions.\n\nDM BLUEPRINT to explore a workflow for your business.\n\n#CRM #SalesAutomation #BusinessSystems",
-      "cta": "DM BLUEPRINT",
-      "asset": "Use approved BAA presenter avatar; create distinct creative before publishing",
-      "status": "Draft · Not published",
-      "postId": "baa-launch-4"
+      "hook": "What investors need to understand",
+      "caption": "What investors need to understand\n\nExplain the business model, market and proposed transaction clearly.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
     },
     {
-      "brand": "BAA",
-      "channel": "Instagram",
+      "postId": "bankole-associates-05",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
       "format": "Static",
-      "hook": "Stop chasing the same information twice",
-      "caption": "If your team copies customer details between spreadsheets, inboxes and apps, there may be a better way.\n\nWe design practical automations that reduce duplicate admin and keep your team informed.\n\nDM BLUEPRINT with the task you wish you could stop doing manually.\n\n#Operations #AIAutomation #SmallBusinessGrowth",
-      "cta": "DM BLUEPRINT",
-      "asset": "Use approved BAA presenter avatar; create distinct creative before publishing",
-      "status": "Draft · Not published",
-      "postId": "baa-launch-5"
+      "hook": "Know your funding timeline",
+      "caption": "Know your funding timeline\n\nConsider preparation, diligence and stakeholder approvals.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bankole-associates-06",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
+      "format": "Carousel",
+      "hook": "Debt, equity or another structure?",
+      "caption": "Debt, equity or another structure?\n\nThe right discussion starts with your business needs and transaction terms.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bankole-associates-07",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
+      "format": "Static",
+      "hook": "Are you ready for diligence?",
+      "caption": "Are you ready for diligence?\n\nReview documentation and identify outstanding information early.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bankole-associates-08",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
+      "format": "Static",
+      "hook": "Beyond an investor introduction",
+      "caption": "Beyond an investor introduction\n\nStructured mandates help align expectations and next steps.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bankole-associates-09",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
+      "format": "Carousel",
+      "hook": "Operating across African markets?",
+      "caption": "Operating across African markets?\n\nShare your transaction scope and jurisdiction in a confidential enquiry.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
+    },
+    {
+      "postId": "bankole-associates-10",
+      "brand": "Bankole & Associates",
+      "channel": "LinkedIn, Instagram, Facebook",
+      "platforms": [
+        "LinkedIn",
+        "Instagram",
+        "Facebook"
+      ],
+      "format": "Reel",
+      "hook": "Discuss a mandate",
+      "caption": "Discuss a mandate\n\nStart a confidential conversation about your financing requirements.\n\nDiscuss a mandate.\n\n#InvestmentAdvisory #CapitalRaising #AfricanBusiness",
+      "cta": "Discuss a mandate",
+      "asset": "Unique branded campaign artwork featuring approved Bankole & Associates presenter or founder image where appropriate; do not reuse avatar alone as finished creative.",
+      "imageUrl": null,
+      "status": "Awaiting individual creative image",
+      "publishedPlatforms": [],
+      "leadTarget": 10
     }
-  ]
+  ],
+  "strategy": {
+    "goal": "10 qualified leads per brand",
+    "brands": 4,
+    "totalPosts": 40,
+    "channels": [
+      "Instagram",
+      "Facebook",
+      "LinkedIn",
+      "TikTok where appropriate"
+    ],
+    "funnel": "Platform post → CTA/DM or landing page → qualification → CRM record → follow-up",
+    "assetsRequired": [
+      "40 individual creatives made in ChatGPT and approved",
+      "Downloadable BAA automation blueprint before advertising download",
+      "Brand-specific landing links verified",
+      "Publishing account permissions verified",
+      "Live URLs and lead attribution stored in HQ"
+    ],
+    "publicationRule": "Do not publish placeholder avatars as finished campaign creative or advertise a nonexistent download."
+  }
 }
