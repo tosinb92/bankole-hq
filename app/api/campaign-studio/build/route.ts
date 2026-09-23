@@ -36,5 +36,3 @@ export async function POST(req:Request){try{
  return NextResponse.json({created:results.length,assets:results});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Creative build failed"},{status:503})}}
 
-// Temporary single-use operator bootstrap; remove immediately after importing approved-avatar artwork.
-export async function GET(req:Request){const q=new URL(req.url).searchParams;if(q.get("bootstrap")!=="baa-20260923-initial-creative-import")return NextResponse.json({error:"Not found"},{status:404});return POST(new Request(req.url,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({brand:"BAA",offset:Number(q.get("offset")||0),count:5})}));}
