@@ -8,9 +8,16 @@ export default function CampaignStudio(){
  const [avatars,setAvatars]=useState<Record<string,string>>({});
  const [brand,setBrand]=useState("All");
  const [error,setError]=useState("");
- const [loading,setLoading]=useState(true);\n const [copied,setCopied]=useState("");\n const [approved,setApproved]=useState<Record<string,boolean>>({});\n const [assets,setAssets]=useState<Record<string,string>>({});\n const [building,setBuilding]=useState(false);\n const [buildMessage,setBuildMessage]=useState("");
+ const [loading,setLoading]=useState(true);
+ const [copied,setCopied]=useState("");
+ 
+ const [assets,setAssets]=useState<Record<string,string>>({});
+ 
+ 
  useEffect(()=>{fetch("/api/campaign-studio/assets?avatars=1",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error||"Could not load saved avatars");const next:Record<string,string>={};for(const a of d.avatars||[])next[a.brand]=a.imageUrl;setAvatars(next)}).catch(e=>setError(e instanceof Error?e.message:"Avatar loading failed")).finally(()=>setLoading(false))},[]);
- useEffect(()=>{fetch("/api/campaign-studio/assets",{cache:"no-store"}).then(r=>r.json()).then(d=>{const m:Record<string,string>={};for(const a of d.assets||[])if(a.postId&&a.imageUrl)m[a.postId]=a.imageUrl;setAssets(m)}).catch(()=>{})},[]);\n const posts=launch.posts.filter(p=>brand==="All"||p.brand===brand);\n return <main style={{minHeight:"100vh",background:"#0a111c",color:"#f4f6f9",padding:"28px clamp(18px,4vw,64px)",fontFamily:"Inter,Arial,sans-serif"}}>
+ useEffect(()=>{fetch("/api/campaign-studio/assets",{cache:"no-store"}).then(r=>r.json()).then(d=>{const m:Record<string,string>={};for(const a of d.assets||[])if(a.postId&&a.imageUrl)m[a.postId]=a.imageUrl;setAssets(m)}).catch(()=>{})},[]);
+ const posts=launch.posts.filter(p=>brand==="All"||p.brand===brand);
+ return <main style={{minHeight:"100vh",background:"#0a111c",color:"#f4f6f9",padding:"28px clamp(18px,4vw,64px)",fontFamily:"Inter,Arial,sans-serif"}}>
  <Link href="/" style={{color:"#a9c7e8"}}>← HQ home</Link>
  <header style={{padding:"34px 0 24px",borderBottom:"1px solid #344053"}}>
  <p style={{color:"#b7c5d8",letterSpacing:3,fontSize:12}}>BANKOLE HQ / CUSTOMER ACQUISITION</p>
