@@ -58,7 +58,7 @@ export default function HQApp() {
 
   return <main className="shell">
     <aside className="sidebar"><div className="brand"><span className="key">◆</span> BANKOLE <b>HQ</b></div><p className="private">PRIVATE OPERATING SYSTEM</p>
-      <nav>{nav.map(item => <button className={view === item && !venture ? "nav active" : "nav"} onClick={() => {setView(item);setVenture(null)}} key={item}>{item}</button>)}</nav>
+      <nav>{nav.map(item => <button className={view === item && !venture ? "nav active" : "nav"} onClick={() => {setView(item);setVenture(null)}} key={item}>{item}</button>)}<a className="nav" href="/campaign-studio" style={{display:"block",padding:"14px 16px",textDecoration:"none",color:"#aeead9",fontWeight:700}}>Campaign Studio ↗</a></nav>
       <div className="side-foot"><span className="pulse"/>HQ online<br/><small>Private workspace</small></div>
     </aside>
     <section className="content"><header><div><p className="eyebrow">BANKOLE HQ · PRIVATE OPERATING SYSTEM</p><h1>{venture ?? view}</h1><p className="page-purpose">{venture ? "Focus on this business without the rest of HQ competing for attention." : view === "Today" ? "See what matters and decide what moves today." : view === "Businesses" ? "Choose a business to focus on." : view === "Intelligence" ? "See what is working and what to do next." : "Turn an idea or opportunity into something usable."}</p></div><div className="header-actions"><button className="quiet">Search</button><button className="avatar">TB</button></div></header>
