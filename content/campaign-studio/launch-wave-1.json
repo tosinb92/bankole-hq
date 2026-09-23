@@ -10,7 +10,8 @@
       "caption": "Your business shouldn't depend on you doing everything. 🚀\n\nImagine every customer enquiry being captured, followed up and organised automatically—even when you're busy.\n\nAt Brilliant AI Automations, we build custom AI systems that help businesses automate sales, customer service and everyday operations.\n\nWant to discover what we could automate in your business?\n\nDM us BLUEPRINT for a free initial discussion.\n\n#AIAutomation #BusinessAutomation #SmallBusinessGrowth #ArtificialIntelligence",
       "cta": "DM BLUEPRINT",
       "asset": "Use uploaded BAA female presenter avatar; branded office visual",
-      "status": "Ready for creative review; not published"
+      "status": "Ready for creative review; not published",
+      "postId": "baa-launch-1"
     },
     {
       "brand": "Bubble Leisure",
@@ -41,6 +42,50 @@
       "cta": "Discuss a mandate",
       "asset": "Use existing approved Tosin founder portrait; do not substitute generated portrait",
       "status": "Ready for creative review; not published"
+    },
+    {
+      "brand": "BAA",
+      "channel": "Instagram",
+      "format": "Static",
+      "hook": "What happens to enquiries after 6pm?",
+      "caption": "A potential customer messages after hours. Nobody replies until tomorrow. By then, they may have moved on.\n\nBAA builds enquiry capture and follow-up workflows that help your business respond consistently without keeping you glued to your phone.\n\nDM BLUEPRINT and tell us where your enquiries come from.\n\n#AIAutomation #LeadManagement #SmallBusiness",
+      "cta": "DM BLUEPRINT",
+      "asset": "Use approved BAA presenter avatar; create distinct creative before publishing",
+      "status": "Draft · Not published",
+      "postId": "baa-launch-2"
+    },
+    {
+      "brand": "BAA",
+      "channel": "Instagram",
+      "format": "Static",
+      "hook": "Three repetitive tasks you could automate",
+      "caption": "1. Capturing new enquiries from forms and messages.\n2. Routing leads to the right person.\n3. Sending timely follow-up reminders.\n\nYour workflow should fit your business—not the other way around.\n\nDM BLUEPRINT to discuss your biggest bottleneck.\n\n#BusinessAutomation #WorkflowAutomation #AI",
+      "cta": "DM BLUEPRINT",
+      "asset": "Use approved BAA presenter avatar; create distinct creative before publishing",
+      "status": "Draft · Not published",
+      "postId": "baa-launch-3"
+    },
+    {
+      "brand": "BAA",
+      "channel": "Instagram",
+      "format": "Static",
+      "hook": "A CRM is only useful when someone updates it",
+      "caption": "Leads scattered across email, forms and messages make follow-up harder than it needs to be.\n\nBAA can connect your existing tools so new enquiries are recorded and routed automatically, with human approval for important decisions.\n\nDM BLUEPRINT to explore a workflow for your business.\n\n#CRM #SalesAutomation #BusinessSystems",
+      "cta": "DM BLUEPRINT",
+      "asset": "Use approved BAA presenter avatar; create distinct creative before publishing",
+      "status": "Draft · Not published",
+      "postId": "baa-launch-4"
+    },
+    {
+      "brand": "BAA",
+      "channel": "Instagram",
+      "format": "Static",
+      "hook": "Stop chasing the same information twice",
+      "caption": "If your team copies customer details between spreadsheets, inboxes and apps, there may be a better way.\n\nWe design practical automations that reduce duplicate admin and keep your team informed.\n\nDM BLUEPRINT with the task you wish you could stop doing manually.\n\n#Operations #AIAutomation #SmallBusinessGrowth",
+      "cta": "DM BLUEPRINT",
+      "asset": "Use approved BAA presenter avatar; create distinct creative before publishing",
+      "status": "Draft · Not published",
+      "postId": "baa-launch-5"
     }
   ]
 }
