@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/server/prisma";
+import { prisma } from "@/lib/server/prisma";\nimport { recentHqEvents, syncStatuses } from "@/lib/server/hq-live";
 export const runtime = "nodejs";
 
 const operatorContext=[
@@ -21,7 +21,7 @@ export async function GET() {
   prisma.skillExecution.findMany({where:{status:"NEEDS_APPROVAL"},orderBy:{createdAt:"desc"},take:20,include:{venture:{select:{name:true}},skill:{select:{name:true}}}}),
   prisma.revenueEntry.findMany({orderBy:{occurredAt:"desc"},take:100,include:{venture:{select:{name:true}}}})
  ]);
- const queue:any[]=[...operatorContext];
+ const liveEvents=await recentHqEvents(40).catch(()=>[]);\n const sync=await syncStatuses().catch(()=>[]);\n const queue:any[]=[];\n liveEvents.forEach((e:any)=>queue.push({id:"event-"+e.id,business:e.ventureName??"HQ",type:e.eventType,title:e.title,detail:e.detail??"Live activity",priority:e.importance??60,action:"business",source:e.source}));
  tasks.forEach(t=>queue.push({id:"task-"+t.id,business:t.venture?.name??"HQ",type:"TASK",title:t.title,detail:"Open task",priority:75,action:"business",source:"HQ database"}));
  approvals.forEach(x=>queue.push({id:"approval-"+x.id,business:x.venture?.name??"HQ",type:"APPROVAL",title:"Review "+x.skill.name+" output",detail:"Work is waiting for your approval.",priority:95,action:"business",source:"HQ database"}));
  opportunities.forEach(o=>queue.push({id:"opp-"+o.id,business:o.venture?.name??"HQ",type:"OPPORTUNITY",title:o.title,detail:o.brief.slice(0,180)||"Opportunity captured in Intelligence.",priority:85,action:"intelligence",source:"HQ database"}));
@@ -34,5 +34,5 @@ export async function GET() {
  // Deal and revenue records currently have no currency field. Do not aggregate them into a misleading GBP total.
  const pipelineValue:null=null;
  const recordedRevenue:null=null;
- return NextResponse.json({generatedAt:new Date().toISOString(),dataPolicy:"Live HQ database records are combined with explicitly labelled current operator context; no demo records are generated.",metrics:{ventures:ventures.length,openTasks:tasks.length,activeLeads:activeLeads.length,activeDeals:activeDeals.length,opportunities:opportunities.length,approvals:approvals.length,pipelineValue,leadValue,recordedRevenue,currencyNotice:"Deal/revenue totals are hidden until currency is recorded per entry. Lead estimates are GBP for the current Bubble Leisure workflow."},queue:queue.slice(0,24),integrations:{hqDatabase:"LIVE",resend:"CONNECTED · FIRECOMPLIANCE SEND HISTORY VERIFIED",fireOutreach:"GOOGLE SHEET QUEUE → DEDUPE → RESEND; PERSISTENT HQ SYNC TO WIRE",gmail:"CHATGPT CONNECTED · HQ SERVER SYNC NOT WIRED",vidiq:"LIVE · SEARCH + PERSISTENCE VERIFIED",vercel:"DEPLOYMENT BLOCKED · DEVELOPMENT CONTINUES IN GITHUB"}});
+ return NextResponse.json({generatedAt:new Date().toISOString(),dataPolicy:"Live HQ database records are combined with explicitly labelled current operator context; no demo records are generated.",metrics:{ventures:ventures.length,openTasks:tasks.length,activeLeads:activeLeads.length,activeDeals:activeDeals.length,opportunities:opportunities.length,approvals:approvals.length,pipelineValue,leadValue,recordedRevenue,currencyNotice:"Deal/revenue totals are hidden until currency is recorded per entry. Lead estimates are GBP for the current Bubble Leisure workflow."},queue:queue.slice(0,24),integrations:Object.fromEntries(sync.map((x:any)=>[x.label,`${x.status}${x.lastSuccessAt?` · ${new Date(x.lastSuccessAt).toISOString()}`:""}`]))});
 }
