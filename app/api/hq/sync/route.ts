@@ -1,0 +1,4 @@
+import {NextRequest,NextResponse} from "next/server";import {markSync,syncStatuses} from "@/lib/server/hq-live";export const runtime="nodejs";
+function ok(req:NextRequest){const t=process.env.HQ_INGEST_TOKEN;return !!t&&req.headers.get("authorization")===`Bearer ${t}`;}
+export async function GET(req:NextRequest){if(!ok(req))return NextResponse.json({error:"Unauthorized"},{status:401});return NextResponse.json({integrations:await syncStatuses()});}
+export async function POST(req:NextRequest){if(!ok(req))return NextResponse.json({error:"Unauthorized"},{status:401});const b=await req.json();if(!b.key||!b.label||!b.status)return NextResponse.json({error:"key, label and status required"},{status:400});await markSync(b.key,b.label,b.status,b.error,b.metadata);return NextResponse.json({ok:true});}
