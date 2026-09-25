@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
+import { recentHqEvents, syncStatuses } from "@/lib/server/hq-live";
 export const runtime = "nodejs";
-
-const operatorContext=[
- {id:"ctx-baa-thursday",business:"Brilliant AI Automation",type:"DEADLINE",title:"Thursday BAA presentation",detail:"Fixed deadline: finish the presentation and demo, verify signup/payment, and prepare immediate post-presentation conversion follow-up.",priority:120,action:"business",source:"Current operating context"},
- {id:"ctx-ba-new-client",business:"Bankole & Associates",type:"CLIENT",title:"Onboard new Bankole & Associates client",detail:"Use the real client to test qualification → mandate → onboarding → documents/data room → private admin investor matching → introductions → progress and fees. Surface broken steps immediately.",priority:115,action:"business",source:"Current operating context"},
- {id:"ctx-fire-500",business:"FireComplianceUK",type:"REVENUE",title:"Demand-side outreach toward 500 contacts",detail:"Google Sheet is the prospect queue. Resend history is the send/dedupe source of truth. Track sent, bounced/failed, replied, registered and next-unsent state so outreach can resume safely.",priority:110,action:"business",source:"Current operating context"},
- {id:"ctx-hq-vercel",business:"HQ",type:"BLOCKED",title:"HQ deployment blocked; development continues",detail:"Vercel deployment limits must not stop development. Keep tested changes committed and deployment-ready, with blockers visible.",priority:105,action:"business",source:"Current operating context"},
- {id:"ctx-bubble-launch",business:"Bubble Leisure",type:"REVENUE",title:"Facebook acquisition funnel",detail:"Keep launch work ready without displacing the Thursday BAA deadline, the new B&A client or FireCompliance outreach.",priority:70,action:"business",source:"Current operating context"}
-];
 
 export async function GET() {
  if (!process.env.DATABASE_URL) return NextResponse.json({error:"HQ data connection is unavailable."},{status:503});
@@ -21,7 +14,10 @@ export async function GET() {
   prisma.skillExecution.findMany({where:{status:"NEEDS_APPROVAL"},orderBy:{createdAt:"desc"},take:20,include:{venture:{select:{name:true}},skill:{select:{name:true}}}}),
   prisma.revenueEntry.findMany({orderBy:{occurredAt:"desc"},take:100,include:{venture:{select:{name:true}}}})
  ]);
- const queue:any[]=[...operatorContext];
+ const liveEvents=await recentHqEvents(40).catch(()=>[]);
+ const sync=await syncStatuses().catch(()=>[]);
+ const queue:any[]=[];
+ liveEvents.forEach((e:any)=>queue.push({id:"event-"+e.id,business:e.ventureName??"HQ",type:e.eventType,title:e.title,detail:e.detail??"Live activity",priority:e.importance??60,action:"business",source:e.source}));
  tasks.forEach(t=>queue.push({id:"task-"+t.id,business:t.venture?.name??"HQ",type:"TASK",title:t.title,detail:"Open task",priority:75,action:"business",source:"HQ database"}));
  approvals.forEach(x=>queue.push({id:"approval-"+x.id,business:x.venture?.name??"HQ",type:"APPROVAL",title:"Review "+x.skill.name+" output",detail:"Work is waiting for your approval.",priority:95,action:"business",source:"HQ database"}));
  opportunities.forEach(o=>queue.push({id:"opp-"+o.id,business:o.venture?.name??"HQ",type:"OPPORTUNITY",title:o.title,detail:o.brief.slice(0,180)||"Opportunity captured in Intelligence.",priority:85,action:"intelligence",source:"HQ database"}));
@@ -34,5 +30,5 @@ export async function GET() {
  // Deal and revenue records currently have no currency field. Do not aggregate them into a misleading GBP total.
  const pipelineValue:null=null;
  const recordedRevenue:null=null;
- return NextResponse.json({generatedAt:new Date().toISOString(),dataPolicy:"Live HQ database records are combined with explicitly labelled current operator context; no demo records are generated.",metrics:{ventures:ventures.length,openTasks:tasks.length,activeLeads:activeLeads.length,activeDeals:activeDeals.length,opportunities:opportunities.length,approvals:approvals.length,pipelineValue,leadValue,recordedRevenue,currencyNotice:"Deal/revenue totals are hidden until currency is recorded per entry. Lead estimates are GBP for the current Bubble Leisure workflow."},queue:queue.slice(0,24),integrations:{hqDatabase:"LIVE",resend:"CONNECTED · FIRECOMPLIANCE SEND HISTORY VERIFIED",fireOutreach:"GOOGLE SHEET QUEUE → DEDUPE → RESEND; PERSISTENT HQ SYNC TO WIRE",gmail:"CHATGPT CONNECTED · HQ SERVER SYNC NOT WIRED",vidiq:"LIVE · SEARCH + PERSISTENCE VERIFIED",vercel:"DEPLOYMENT BLOCKED · DEVELOPMENT CONTINUES IN GITHUB"}});
+ return NextResponse.json({generatedAt:new Date().toISOString(),dataPolicy:"Live HQ database records and authorised integration events only; no hard-coded operator context or demo records.",metrics:{ventures:ventures.length,openTasks:tasks.length,activeLeads:activeLeads.length,activeDeals:activeDeals.length,opportunities:opportunities.length,approvals:approvals.length,pipelineValue,leadValue,recordedRevenue,currencyNotice:"Deal/revenue totals are hidden until currency is recorded per entry. Lead estimates are GBP for the current Bubble Leisure workflow."},queue:queue.slice(0,24),integrations:Object.fromEntries(sync.map((x:any)=>[x.label,`${x.status}${x.lastSuccessAt?` · ${new Date(x.lastSuccessAt).toISOString()}`:""}`]))});
 }
