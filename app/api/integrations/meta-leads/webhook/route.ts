@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
+import { calculateBubbleQuote, sendBubbleQuoteEmail } from "@/lib/server/bubble-conversion";
 
 export const runtime = "nodejs";
 
@@ -183,6 +184,12 @@ async function ingestLeadgenId(leadgenId: string, webhookValue: any) {
     },
   });
 
+  // If the Instant Form already contains enough information and HQ has an exact
+  // active pricing rule, create/send the quote immediately. Otherwise the lead
+  // remains available for voice qualification or a pricing task.
+  const pricing = await calculateBubbleQuote(lead.id);
+  const message = pricing.ok ? await sendBubbleQuoteEmail(lead.id) : { sent: false, reason: pricing.reason };
+
   const voice = await startVoiceCall({
     id: lead.id,
     customerName: lead.customerName,
@@ -191,7 +198,7 @@ async function ingestLeadgenId(leadgenId: string, webhookValue: any) {
     requirements,
   });
 
-  return { created: true, leadId: lead.id, duplicate: false, voice };
+  return { created: true, leadId: lead.id, duplicate: false, pricing, message, voice };
 }
 
 export async function GET(request: NextRequest) {
