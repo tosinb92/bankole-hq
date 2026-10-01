@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
+import { calculateBubbleQuote, sendBubbleQuoteEmail } from "@/lib/server/bubble-conversion";
 
 export const runtime = "nodejs";
 
@@ -74,6 +75,23 @@ export async function POST(request: NextRequest) {
       where: { id: call.leadId },
       data: { stage: successfulConversation ? "REQUIREMENTS" : "FOLLOW_UP" },
     });
+
+    // After a successful qualification call, HQ—not the voice model—calculates
+    // the price from stored Bubble Leisure PricingRule records and sends the
+    // written quote automatically when the rule is deterministic.
+    if (successfulConversation) {
+      const pricing = await calculateBubbleQuote(call.leadId);
+      if (pricing.ok) {
+        await sendBubbleQuoteEmail(call.leadId);
+      } else {
+        const existingPricingTask = await prisma.task.findFirst({
+          where: { leadId: call.leadId, status: { in: ["TODO", "IN_PROGRESS"] }, title: { startsWith: "Price " } },
+        });
+        if (!existingPricingTask) {
+          await prisma.task.create({ data: { ventureId: call.lead.ventureId, leadId: call.leadId, title: `Price ${call.lead.customerName} enquiry`, priority: 1, status: "TODO" } });
+        }
+      }
+    }
 
     if (!successfulConversation) {
       const existing = await prisma.task.findFirst({
