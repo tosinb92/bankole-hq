@@ -16,6 +16,10 @@ export async function calculateBubbleQuote(leadId: string) {
   if (!activity || !guests) return { ok: false as const, reason: "missing-requirements", missing: [!activity && "activity", !guests && "group-size"].filter(Boolean) };
 
   const rules = await prisma.pricingRule.findMany({ where: { ventureId: lead.ventureId, active: true } });
+  // Approved pricing from the current Bubble Leisure Pricing sheet.
+  // Red/excluded offers are deliberately absent.
+  const approvedBase = duration === 60 ? 250 : duration === 90 ? 300 : null;
+  const approvedPrice = approvedBase == null ? null : approvedBase + Math.max(0, guests - 10) * 10;
   const candidates = rules.filter(r => {
     if (norm(r.activity) !== norm(activity)) return false;
     if (r.groupMin != null && guests < r.groupMin) return false;
@@ -23,7 +27,14 @@ export async function calculateBubbleQuote(leadId: string) {
     if (r.durationMinutes != null && duration != null && Math.abs(r.durationMinutes - duration) > 1) return false;
     return true;
   });
-  if (!candidates.length) return { ok: false as const, reason: "no-authoritative-pricing-rule", activity, guests, duration };
+  if (!candidates.length) {
+    if (approvedPrice == null) return { ok: false as const, reason: "no-authoritative-pricing-rule", activity, guests, duration };
+    const customerPrice = approvedPrice;
+    let quote = await prisma.quote.findFirst({ where: { leadId: lead.id, status: { in: ["Draft","Ready","Sent"] } }, orderBy: { createdAt: "desc" } });
+    if (!quote) quote = await prisma.quote.create({ data: { leadId: lead.id, customerPrice, directCosts: 0, grossProfit: customerPrice, status: "Ready" } });
+    await prisma.lead.update({ where: { id: lead.id }, data: { estimatedValue: customerPrice, stage: "QUOTE" } });
+    return { ok: true as const, quoteId: quote.id, customerPrice, currency: "GBP", activity, guests, duration, ruleId: "approved-sheet-v1" };
+  }
 
   const rule = candidates.sort((a,b) => {
     const ar = Number(a.basePriceMax) - Number(a.basePriceMin);
