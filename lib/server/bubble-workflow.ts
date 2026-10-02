@@ -13,7 +13,7 @@ export async function queueBubbleMessage(leadId: string, kind: 'received'|'quote
   const id = `bubble-mail-${createHash('sha256').update(`${leadId}:${kind}:${kind==='quote'?`${q?.id}:${r.bookingApproval?.id || ''}`:''}`).digest('hex').slice(0,40)}`;
   const subject = {received:'Your Bubble Leisure enquiry',quote:'Your Bubble Leisure quote',confirmed:'Your Bubble Leisure booking is confirmed',reminder:'Your Bubble Leisure event reminder'}[kind];
   const text = kind==='received' ? 'We have received your event details. Your date is not reserved yet.' : kind==='quote' ? `Your quote is £${Number(q?.customerPrice).toFixed(2)}. Availability and payment details are shown in your booking page.` : kind==='confirmed' ? 'Your payment has been received and your booking is confirmed. Your booking page contains your event and balance details.' : 'Your event is coming up. Please check your booking page for the confirmed details.';
-  await prisma.communication.upsert({where:{id},update:{},create:{id,ventureId:lead.ventureId,subject,status:'APPROVED',body:JSON.stringify({to:lead.email,html:`<p>Hello ${escapeHtml(lead.customerName)},</p><p>${escapeHtml(text)}</p><p>${escapeHtml(r.activity)} · ${escapeHtml(r.date || r.eventDateTime || 'Date to be agreed')} · ${escapeHtml(lead.requestedLocation)}</p><p><a href="${escapeHtml(bookingLink(lead.id))}">View your booking</a></p><p>Bubble Leisure</p>`})}});
+  return prisma.communication.upsert({where:{id},update:{},create:{id,ventureId:lead.ventureId,subject,status:'APPROVED',body:JSON.stringify({to:lead.email,html:`<p>Hello ${escapeHtml(lead.customerName)},</p><p>${escapeHtml(text)}</p><p>${escapeHtml(r.activity)} · ${escapeHtml(r.date || r.eventDateTime || 'Date to be agreed')} · ${escapeHtml(lead.requestedLocation)}</p><p><a href="${escapeHtml(bookingLink(lead.id))}">View your booking</a></p><p>Bubble Leisure</p>`})}});
 }
 
 export async function flushBubbleMessages() {
@@ -62,7 +62,7 @@ export async function intakeBubbleWebsite(payload: Record<string, unknown>) {
     if(existing)return existing;
     const recent=await tx.lead.count({where:{ventureId:venture.id,id:{startsWith:'bubble-web-'},email:{equals:String(payload.email),mode:'insensitive'},createdAt:{gte:new Date(Date.now()-3600000)}}});
     if(recent>=3)throw new Error('Too many submissions; please contact us');
-    return tx.lead.create({data:{id,ventureId:venture.id,customerName:String(payload.name),email:String(payload.email),phone:String(payload.phone || '') || null,requestedLocation:String(payload.location),requirements:JSON.parse(JSON.stringify({...payload,source:'Bubble Leisure Website'})),stage:'NEW_LEAD'}});
+    return tx.lead.create({data:{id,ventureId:venture.id,customerName:String(payload.name),email:String(payload.email),phone:String(payload.phone || '') || null,requestedLocation:String(payload.location),requirements:JSON.parse(JSON.stringify({...payload,source:'Bubble Leisure Website',workflowVersion:'customer-flow-v1'})),stage:'NEW_LEAD'}});
   });
   // An acknowledged submission always refers to the durable customer record.
   try { await progressBubbleLead(lead.id); } catch { /* Cron retries pending leads. */ }

@@ -18,12 +18,13 @@ export async function calculateBubbleQuote(leadId: string) {
 async function calculateLocked(leadId: string, db:Prisma.TransactionClient) {
   const lead = await db.lead.findUnique({ where: { id: leadId }, include: { venture: true } });
   if (!lead || lead.venture.name !== "Bubble Leisure") return { ok: false as const, reason: "lead-not-found" };
-  const existing = await db.quote.findFirst({where:{leadId, status:{in:["Ready","Sent","Accepted","Paid"]}},orderBy:{createdAt:"desc"}});
-  if(existing) return {ok:true as const,quoteId:existing.id,customerPrice:Number(existing.customerPrice),currency:"GBP"};
+  const existing = await db.quote.findFirst({where:{leadId},orderBy:{createdAt:"desc"}});
+  if(existing && ["Ready","Sent","Accepted","Paid"].includes(existing.status)) return {ok:true as const,quoteId:existing.id,customerPrice:Number(existing.customerPrice),currency:"GBP"};
   const req: any = lead.requirements || {};
   const activity = String(req.activity || "").trim();
-  const guests = num(req.players || req.guests);
-  const duration = num(req.duration);
+  const guests = num(req.guests || req.players);
+  const parsedDuration=num(req.duration);
+  const duration=parsedDuration && /hour/i.test(String(req.duration)) ? parsedDuration*60 : parsedDuration;
   if (!activity || !guests || !duration) return { ok: false as const, reason: "missing-requirements", missing: [!activity && "activity", !guests && "group-size", !duration && "duration"].filter(Boolean) };
 
   const rules = await db.pricingRule.findMany({ where: { ventureId: lead.ventureId, active: true } });
@@ -43,8 +44,8 @@ async function calculateLocked(leadId: string, db:Prisma.TransactionClient) {
   if (!candidates.length) {
     if (approvedPrice == null) return { ok: false as const, reason: "no-authoritative-pricing-rule", activity, guests, duration };
     const customerPrice = approvedPrice;
-    let quote = await db.quote.findFirst({ where: { leadId: lead.id, status: { in: ["Draft","Ready","Sent"] } }, orderBy: { createdAt: "desc" } });
-    if (!quote) quote = await db.quote.create({ data: { leadId: lead.id, customerPrice, directCosts: 0, grossProfit: customerPrice, status: "Ready" } });
+    await db.quote.updateMany({where:{leadId:lead.id,status:"Draft"},data:{status:"Superseded"}});
+    const quote = await db.quote.create({ data: { leadId: lead.id, customerPrice, directCosts: 0, grossProfit: customerPrice, status: "Ready" } });
     await db.lead.update({ where: { id: lead.id }, data: { estimatedValue: customerPrice, stage: "QUOTE" } });
     return { ok: true as const, quoteId: quote.id, customerPrice, currency: "GBP", activity, guests, duration, ruleId: "approved-sheet-v1" };
   }
@@ -57,21 +58,22 @@ async function calculateLocked(leadId: string, db:Prisma.TransactionClient) {
 
   // Never invent a price. Only auto-quote a deterministic rule.
   const min = Number(rule.basePriceMin), max = Number(rule.basePriceMax);
-  if (!Number.isFinite(min) || !Number.isFinite(max) || min !== max) {
+  if (!Number.isFinite(min) || !Number.isFinite(max) || min<=0 || min !== max) {
     return { ok: false as const, reason: "pricing-requires-review", ruleId: rule.id, range: { min, max } };
   }
   const customerPrice = min;
   const directCosts = Number(rule.staffingCost) + Number(rule.equipmentCost);
   const grossProfit = customerPrice - directCosts;
-  let quote = await db.quote.findFirst({ where: { leadId: lead.id, status: { in: ["Draft","Ready","Sent"] } }, orderBy: { createdAt: "desc" } });
-  if (!quote) quote = await db.quote.create({ data: { leadId: lead.id, customerPrice, directCosts, grossProfit, status: "Ready" } });
+  await db.quote.updateMany({where:{leadId:lead.id,status:"Draft"},data:{status:"Superseded"}});
+  const quote = await db.quote.create({ data: { leadId: lead.id, customerPrice, directCosts, grossProfit, status: "Ready" } });
   await db.lead.update({ where: { id: lead.id }, data: { estimatedValue: customerPrice, stage: "QUOTE" } });
   return { ok: true as const, quoteId: quote.id, customerPrice, currency: "GBP", activity, guests, duration, ruleId: rule.id };
 }
 
 export async function sendBubbleQuoteEmail(leadId: string, _bookingUrl?: string) {
   const {queueBubbleMessage,flushBubbleMessages} = await import('./bubble-workflow');
-  await queueBubbleMessage(leadId,'quote');
+  const message=await queueBubbleMessage(leadId,'quote');
   const result=await flushBubbleMessages();
-  return {sent:result.sent>0,reason:result.blocked || 'queued-or-delivered'};
+  const stored=message?await prisma.communication.findUnique({where:{id:message.id}}):null;
+  return {sent:stored?.status==='SENT',reason:result.blocked || (stored?.status==='SENT'?'delivered':'queued')};
 }

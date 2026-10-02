@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
         endedReason.toLowerCase().includes(x)
       );
 
-    await prisma.lead.update({
-      where: { id: call.leadId },
+    await prisma.lead.updateMany({
+      where: { id: call.leadId, stage: {notIn:["DEPOSIT","VENUE_SECURED","CONFIRMED","EVENT","WON","LOST"]} },
       data: { stage: successfulConversation ? "REQUIREMENTS" : "FOLLOW_UP" },
     });
 

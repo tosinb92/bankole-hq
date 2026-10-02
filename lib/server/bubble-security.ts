@@ -24,6 +24,11 @@ export function bookingLead(token: unknown): string | null {
     return typeof data.id === 'string' && Number.isFinite(data.exp) && data.exp > Date.now()/1000 ? data.id : null;
   } catch { return null; }
 }
+export function bubbleWebsiteUrl() {
+  const url=new URL(process.env.BUBBLE_WEBSITE_URL || 'https://bubble-leisure.vercel.app');
+  if(url.protocol!=='https:' || url.username || url.password)throw new Error('Invalid website URL');
+  return url.origin;
+}
 export function bookingLink(id: string) {
-  return `https://bubble-leisure.vercel.app/booking#${bookingToken(id)}`;
+  return `${bubbleWebsiteUrl()}/booking#${bookingToken(id)}`;
 }

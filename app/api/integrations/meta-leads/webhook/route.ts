@@ -155,11 +155,12 @@ async function ingestLeadgenId(leadgenId: string, webhookValue: any) {
       OR: [{requirements:{path:["metaLeadId"],equals:leadgenId}},{requirements:{path:["facebookLeadId"],equals:leadgenId}}],
     },
   });
-  if (duplicate) { await progressBubbleLead(duplicate.id); return { created: false, leadId: duplicate.id, duplicate: true }; }
+  if (duplicate) { if((duplicate.requirements as any)?.workflowVersion==="customer-flow-v1")await progressBubbleLead(duplicate.id); return { created: false, leadId: duplicate.id, duplicate: true }; }
 
   const requirements = {
     source: "Facebook Instant Form",
     provider: "Meta Webhook",
+    workflowVersion:"customer-flow-v1",
     metaLeadId: leadgenId,
     pageId: String(webhookValue?.page_id || ""),
     formId: String(external?.form_id || webhookValue?.form_id || ""),

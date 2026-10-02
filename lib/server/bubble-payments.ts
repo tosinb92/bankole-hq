@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { prisma } from './prisma';
+import {bubbleWebsiteUrl} from './bubble-security';
 import { queueBubbleMessage } from './bubble-workflow';
 export function stripeClient() {
   if(!process.env.STRIPE_SECRET_KEY) throw new Error('Payments are not configured');
@@ -22,7 +23,7 @@ export async function bubbleCheckout(leadId: string) {
     const attempt=Math.floor(Date.now()/3600000);
     // Hour bucket fixes both expiry and request parameters across timeouts/retries.
     const expiresAt=(attempt+2)*3600;
-    const session=await stripe.checkout.sessions.create({mode:'payment',client_reference_id:lead.id,customer_email:lead.email || undefined,success_url:'https://bubble-leisure.vercel.app/booking?payment=processing',cancel_url:'https://bubble-leisure.vercel.app/booking?payment=cancelled',expires_at:expiresAt,metadata:{bubbleLeadId:lead.id,approvalId:approval.id,quoteId:quote.id},line_items:[{quantity:1,price_data:{currency:'gbp',unit_amount:approval.payablePence,product_data:{name:`Bubble Leisure — ${String(r.activity || 'event')}`,description:`Payment towards total £${(approval.totalPence/100).toFixed(2)}`}}}],custom_text:{submit:{message:'Your booking is confirmed after payment is verified.'}}},{idempotencyKey:`bubble-checkout-${approval.id}-${attempt}`});
+    const session=await stripe.checkout.sessions.create({mode:'payment',client_reference_id:lead.id,customer_email:lead.email || undefined,success_url:`${bubbleWebsiteUrl()}/booking?payment=processing`,cancel_url:`${bubbleWebsiteUrl()}/booking?payment=cancelled`,expires_at:expiresAt,metadata:{bubbleLeadId:lead.id,approvalId:approval.id,quoteId:quote.id},line_items:[{quantity:1,price_data:{currency:'gbp',unit_amount:approval.payablePence,product_data:{name:`Bubble Leisure — ${String(r.activity || 'event')}`,description:`Payment towards total £${(approval.totalPence/100).toFixed(2)}`}}}],custom_text:{submit:{message:'Your booking is confirmed after payment is verified.'}}},{idempotencyKey:`bubble-checkout-${approval.id}-${attempt}`});
     await tx.lead.update({where:{id:lead.id},data:{requirements:{...r,termsAcceptance:{approvalId:approval.id,acceptedAt:new Date().toISOString()},checkout:{id:session.id,expiresAt:expiresAt*1000}}}});
     return {url:session.url};
   },{timeout:25000});

@@ -25,7 +25,7 @@ function paymentHarness(){
  let updates=0,bookings=0,messages=0;
  const tx={$queryRaw:async()=>[],lead:{findUnique:async()=>lead,update:async({data})=>{updates++;lead.requirements=data.requirements;}},quote:{update:async()=>{}},booking:{upsert:async()=>{bookings++;}}};
  const prisma={$transaction:async(fn)=>fn(tx)};
- const api=load('lib/server/bubble-payments.ts',{'./prisma':{prisma},'./bubble-workflow':{queueBubbleMessage:async()=>{messages++;}}});
+ const api=load('lib/server/bubble-payments.ts',{'./prisma':{prisma},'./bubble-security':{bubbleWebsiteUrl:()=>"https://bubble-leisure.vercel.app"},'./bubble-workflow':{queueBubbleMessage:async()=>{messages++;}}});
  const session={id:'cs_test_1',payment_status:'paid',currency:'gbp',amount_total:10000,metadata:{bubbleLeadId:'lead1',approvalId:'approval1',quoteId:'quote1'}};
  return {api,session,lead,counts:()=>({updates,bookings,messages})};
 }

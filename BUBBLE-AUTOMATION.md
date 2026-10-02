@@ -32,6 +32,8 @@ Set secrets in Vercel project settings; never put them in Git or chat.
 
 Existing HQ database, Meta page token, webhook verification token, Vapi API/assistant/server secrets and public URL settings remain in use.
 
+For controlled preview testing, set website `BUBBLE_HQ_URL` to the paired HQ preview origin and HQ `BUBBLE_WEBSITE_URL` to the paired website preview origin. Both default to the production origins when unset. Preview and production credentials/environments must be kept separate.
+
 ## External setup and deployment order
 
 1. Configure the same scoped service credential on both Vercel projects and choose the website owner password. These credential/access changes need explicit approval; password entry is done by the owner.
