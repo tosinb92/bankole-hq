@@ -1,8 +1,10 @@
 import {NextRequest,NextResponse} from "next/server";
 import {prisma} from "@/lib/server/prisma";
+import {bubbleService} from "@/lib/server/bubble-security";
 export const runtime="nodejs";
 
-export async function GET(){
+export async function GET(request:NextRequest){
+ if(!bubbleService(request))return NextResponse.json({error:"Unauthorized"},{status:401});
  if(!process.env.DATABASE_URL)return NextResponse.json({error:"HQ data connection is unavailable."},{status:503});
  const venture=await prisma.venture.findUnique({where:{name:"Bubble Leisure"}});
  if(!venture)return NextResponse.json({error:"Bubble Leisure is not connected to HQ."},{status:404});
@@ -15,6 +17,7 @@ export async function GET(){
 
 
 export async function PATCH(request:NextRequest){
+ if(!bubbleService(request))return NextResponse.json({error:"Unauthorized"},{status:401});
  if(!process.env.DATABASE_URL)return NextResponse.json({error:"HQ data connection is unavailable."},{status:503});
  const body=await request.json().catch(()=>({})); const id=String(body.id||""); const action=String(body.action||"");
  if(!id)return NextResponse.json({error:"Lead id is required."},{status:400});
@@ -28,6 +31,7 @@ export async function PATCH(request:NextRequest){
 }
 
 export async function POST(request:NextRequest){
+ if(!bubbleService(request))return NextResponse.json({error:"Unauthorized"},{status:401});
  if(!process.env.DATABASE_URL)return NextResponse.json({error:"HQ data connection is unavailable."},{status:503});
  const body=await request.json().catch(()=>({})); const id=String(body.id||"");
  const lead=await prisma.lead.findUnique({where:{id},include:{venture:true}}); if(!lead||lead.venture.name!=="Bubble Leisure")return NextResponse.json({error:"Bubble lead not found."},{status:404});

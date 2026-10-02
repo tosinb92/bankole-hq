@@ -7,8 +7,8 @@ export async function GET() {
  if (!process.env.DATABASE_URL) return NextResponse.json({error:"HQ data connection is unavailable."},{status:503});
  const [ventures,tasks,leads,deals,opportunities,approvals,revenue]=await Promise.all([
   prisma.venture.findMany({select:{id:true,name:true}}),
-  prisma.task.findMany({where:{status:{not:"DONE"}},orderBy:{createdAt:"desc"},take:20,include:{venture:{select:{name:true}}}}),
-  prisma.lead.findMany({orderBy:{updatedAt:"desc"},take:50,include:{venture:{select:{name:true}}}}),
+  prisma.task.findMany({where:{status:{not:"DONE"},OR:[{venture:{name:{not:"Bubble Leisure"}}},{ventureId:null}]},orderBy:{createdAt:"desc"},take:20,include:{venture:{select:{name:true}}}}),
+  prisma.lead.findMany({where:{venture:{name:{not:"Bubble Leisure"}}},orderBy:{updatedAt:"desc"},take:50,include:{venture:{select:{name:true}}}}),
   prisma.deal.findMany({orderBy:{createdAt:"desc"},take:50,include:{venture:{select:{name:true}}}}),
   prisma.intelligenceOpportunity.findMany({where:{status:{not:"ARCHIVED"}},orderBy:{createdAt:"desc"},take:20,include:{venture:{select:{name:true}}}}),
   prisma.skillExecution.findMany({where:{status:"NEEDS_APPROVAL"},orderBy:{createdAt:"desc"},take:20,include:{venture:{select:{name:true}},skill:{select:{name:true}}}}),

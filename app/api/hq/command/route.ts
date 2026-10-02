@@ -1,12 +1,13 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/lib/server/prisma";
+import {bubbleService} from "@/lib/server/bubble-security";
 export const runtime="nodejs";
 type Body={venture?:string;command?:string};
 const lower=(s:string)=>s.toLowerCase();
 export async function POST(req:Request){
  if(!process.env.DATABASE_URL)return NextResponse.json({error:"HQ database is not configured."},{status:503});
  const b=await req.json().catch(()=>({})) as Body; const command=b.command?.trim(); if(!command)return NextResponse.json({error:"Tell HQ what you want done."},{status:400});
- const ventureName=b.venture?.trim()||"Bubble Leisure"; const venture=await prisma.venture.findUnique({where:{name:ventureName}});
+ const ventureName=b.venture?.trim()||"Bubble Leisure"; if(ventureName==="Bubble Leisure" && !bubbleService(req))return NextResponse.json({error:"Open Bubble Leisure owner access on the website to manage customer bookings."},{status:401}); const venture=await prisma.venture.findUnique({where:{name:ventureName}});
  if(!venture)return NextResponse.json({error:`${ventureName} is not connected to the HQ database yet.`},{status:404});
  const q=lower(command);
  const laneFor=(text:string)=>/approve|review|authoris|authorize/.test(text)?"NEEDS_APPROVAL":/waiting|blocked|vercel|external/.test(text)?"WAITING_EXTERNAL":/i need|tosin|call|attend|present|decision/.test(text)?"NEEDS_ME":"AI_CAN_HANDLE";

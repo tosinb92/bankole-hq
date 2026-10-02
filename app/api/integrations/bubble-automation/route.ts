@@ -5,6 +5,11 @@ export const runtime = "nodejs";
 export async function GET() {
   const checks = {
     database: Boolean(process.env.DATABASE_URL),
+    metaAppSecret: Boolean(process.env.META_APP_SECRET),
+    websiteServiceSecret: Boolean(process.env.BUBBLE_SERVICE_SECRET),
+    emailSender: Boolean(process.env.RESEND_API_KEY && process.env.BUBBLE_FROM_EMAIL),
+    payments: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET),
+    scheduledWorker: Boolean(process.env.CRON_SECRET),
     metaWebhookVerifyToken: Boolean(process.env.META_WEBHOOK_VERIFY_TOKEN),
     metaPageAccessToken: Boolean(process.env.META_PAGE_ACCESS_TOKEN),
     vapiApiKey: Boolean(process.env.VAPI_API_KEY),
@@ -16,6 +21,11 @@ export async function GET() {
 
   const required = [
     "database",
+    "metaAppSecret",
+    "websiteServiceSecret",
+    "emailSender",
+    "payments",
+    "scheduledWorker",
     "metaWebhookVerifyToken",
     "metaPageAccessToken",
     "vapiApiKey",
@@ -34,6 +44,10 @@ export async function GET() {
       "Automatic Vapi outbound call",
       "Call status/transcript saved to HQ",
       "No-answer follow-up task",
+      "Private customer booking page",
+      "Availability and commercial terms approval",
+      "Stripe Checkout and verified payment reconciliation",
+      "Confirmed booking and event reminder",
     ],
     checks,
     endpoints: {
