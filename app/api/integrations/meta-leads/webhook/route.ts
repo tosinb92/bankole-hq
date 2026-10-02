@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { prisma } from "@/lib/server/prisma";
-import { calculateBubbleQuote, sendBubbleQuoteEmail } from "@/lib/server/bubble-conversion";
+import {progressBubbleLead,flushBubbleMessages} from "@/lib/server/bubble-workflow";
+import {createHmac,createHash} from "node:crypto";
+import {equalSecret} from "@/lib/server/bubble-security";
 
 export const runtime = "nodejs";
 
@@ -42,7 +44,7 @@ async function fetchLead(leadgenId: string) {
   url.searchParams.set("access_token", accessToken);
   const response = await fetch(url, { cache: "no-store" });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(`Meta lead fetch failed (${response.status}): ${JSON.stringify(body)}`);
+  if (!response.ok) throw new Error(`Meta lead fetch failed (${response.status})`);
   return body;
 }
 
@@ -150,10 +152,10 @@ async function ingestLeadgenId(leadgenId: string, webhookValue: any) {
   const duplicate = await prisma.lead.findFirst({
     where: {
       ventureId: venture.id,
-      requirements: { path: ["metaLeadId"], equals: leadgenId },
+      OR: [{requirements:{path:["metaLeadId"],equals:leadgenId}},{requirements:{path:["facebookLeadId"],equals:leadgenId}}],
     },
   });
-  if (duplicate) return { created: false, leadId: duplicate.id, duplicate: true };
+  if (duplicate) { await progressBubbleLead(duplicate.id); return { created: false, leadId: duplicate.id, duplicate: true }; }
 
   const requirements = {
     source: "Facebook Instant Form",
@@ -172,8 +174,11 @@ async function ingestLeadgenId(leadgenId: string, webhookValue: any) {
     rawFields: fields,
   };
 
-  const lead = await prisma.lead.create({
-    data: {
+  const lead = await prisma.lead.upsert({
+    where:{id:`bubble-meta-${createHash("sha256").update(leadgenId).digest("hex").slice(0,40)}`},
+    update:{},
+    create: {
+      id:`bubble-meta-${createHash("sha256").update(leadgenId).digest("hex").slice(0,40)}`,
       ventureId: venture.id,
       customerName: fullName,
       email,
@@ -187,8 +192,8 @@ async function ingestLeadgenId(leadgenId: string, webhookValue: any) {
   // If the Instant Form already contains enough information and HQ has an exact
   // active pricing rule, create/send the quote immediately. Otherwise the lead
   // remains available for voice qualification or a pricing task.
-  const pricing = await calculateBubbleQuote(lead.id);
-  const message = pricing.ok ? await sendBubbleQuoteEmail(lead.id) : { sent: false, reason: pricing.reason };
+  const pricing = await progressBubbleLead(lead.id);
+  const message = {queued:true};
 
   const voice = await startVoiceCall({
     id: lead.id,
@@ -234,7 +239,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "HQ data connection is unavailable." }, { status: 503 });
   }
 
-  const body = await request.json().catch(() => null);
+  const appSecret=process.env.META_APP_SECRET;
+  if(!appSecret)return NextResponse.json({error:"Meta webhook signature verification is not configured"},{status:503});
+  const raw=await request.text();
+  const expected=`sha256=${createHmac('sha256',appSecret).update(raw).digest('hex')}`;
+  if(!equalSecret(request.headers.get('x-hub-signature-256'),expected))return NextResponse.json({error:"Invalid signature"},{status:401});
+  let body;try{body=JSON.parse(raw);}catch{return NextResponse.json({error:"Invalid payload"},{status:400});}
   if (!body || body.object !== "page" || !Array.isArray(body.entry)) {
     return NextResponse.json({ error: "Unsupported Meta webhook payload." }, { status: 400 });
   }
@@ -255,14 +265,15 @@ export async function POST(request: NextRequest) {
     try {
       results.push(await ingestLeadgenId(String(value.leadgen_id), value));
     } catch (error) {
-      console.error("Bubble Leisure Meta lead ingestion failed", error);
+      console.error("Bubble Leisure Meta lead ingestion failed");
       results.push({
         created: false,
         leadgenId: String(value.leadgen_id),
-        error: error instanceof Error ? error.message : "Unknown ingestion error",
+        error: "Ingestion failed; retry required",
       });
     }
   }
 
-  return NextResponse.json({ received: true, processed: results.length, results });
+  after(async()=>{await flushBubbleMessages();});
+  return NextResponse.json({ received: true, processed: results.length, results },{status:results.some(x=>"error" in x)?503:200});
 }

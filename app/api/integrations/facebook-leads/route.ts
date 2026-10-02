@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 
+import {bubbleService} from "@/lib/server/bubble-security";
+import {createHash} from "node:crypto";
 export const runtime = "nodejs";
 const PAGE_ID = "1098181786706854";
 const FIELDS = ["id","created_time","campaign","campaign_id","adset_name","adset_id","ad_name","form_id","form_name","full_name","email","phone_number","choose_activity","choose_duration","choose_date__time","number_of_players","street_address"].join(",");
@@ -24,11 +26,12 @@ async function syncRows(rows:any[]){
  const venture=await prisma.venture.findUnique({where:{name:"Bubble Leisure"}});
  if(!venture)return {error:"Bubble Leisure venture is not present in HQ.",status:404};
  let created=0,existing=0;
- for(const x of rows){const externalId=String(x.id||"");if(!externalId)continue;const duplicate=await prisma.lead.findFirst({where:{ventureId:venture.id,requirements:{path:["facebookLeadId"],equals:externalId}}});if(duplicate){existing++;continue;}await prisma.lead.create({data:{ventureId:venture.id,customerName:x.full_name||"Facebook lead",email:x.email||null,phone:x.phone_number||null,requestedLocation:x.street_address||null,requirements:requirements(x),stage:"NEW_LEAD"}});created++;}
+ for(const x of rows){const externalId=String(x.id||"");if(!externalId)continue;const duplicate=await prisma.lead.findFirst({where:{ventureId:venture.id,OR:[{requirements:{path:["facebookLeadId"],equals:externalId}},{requirements:{path:["metaLeadId"],equals:externalId}}]}});if(duplicate){existing++;continue;}await prisma.lead.upsert({where:{id:`bubble-meta-${createHash("sha256").update(externalId).digest("hex").slice(0,40)}`},update:{},create:{id:`bubble-meta-${createHash("sha256").update(externalId).digest("hex").slice(0,40)}`,ventureId:venture.id,customerName:x.full_name||"Facebook lead",email:x.email||null,phone:x.phone_number||null,requestedLocation:x.street_address||null,requirements:requirements(x),stage:"NEW_LEAD"}});created++;}
  return {created,existing,status:200};
 }
 
 export async function GET(request:NextRequest){
+ if(!bubbleService(request))return NextResponse.json({error:"Unauthorized"},{status:401});
  const result=await pull();
  if(!result.ok)return NextResponse.json({connected:false,source:"Windsor.ai · Facebook Lead Ads",pageId:PAGE_ID,availableLeads:0,message:result.message,providerStatus:(result as any).providerStatus||null},{status:result.status});
  if(new URL(request.url).searchParams.get("sync")!=="1")return NextResponse.json({connected:true,source:"Windsor.ai · Facebook Lead Ads",pageId:PAGE_ID,availableLeads:result.rows.length,message:"Facebook Lead Ads connection is reachable."});
@@ -37,6 +40,7 @@ export async function GET(request:NextRequest){
 }
 
 export async function POST(request:NextRequest){
+ if(!bubbleService(request))return NextResponse.json({error:"Unauthorized"},{status:401});
  const secret=process.env.HQ_SYNC_SECRET;if(secret&&request.headers.get("x-hq-sync-secret")!==secret)return NextResponse.json({error:"Unauthorized"},{status:401});
  const result=await pull();if(!result.ok)return NextResponse.json({error:result.message,providerStatus:(result as any).providerStatus||null},{status:result.status});
  const synced=await syncRows(result.rows);if((synced as any).error)return NextResponse.json({error:(synced as any).error},{status:(synced as any).status});
