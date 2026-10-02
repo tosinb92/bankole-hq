@@ -1,6 +1,6 @@
 # Bubble Leisure customer flow
 
-Companion website: `tosinb92/bubble-leisure`. HQ stores all customer, quote and booking data in its existing database. No schema migration is required.
+Companion website: `tosinb92/bubble-leisure`. HQ stores all customer, quote and booking data in its existing database. The implemented lead/payment pieces require no schema migration. Fully automatic resource scheduling is still outstanding.
 
 ## Implemented
 
@@ -8,7 +8,7 @@ Companion website: `tosinb92/bubble-leisure`. HQ stores all customer, quote and 
 - Exact active pricing rules generate quotes; the existing kids pricing sheet applies only to Bubble Football, Nerf Wars or Dodgeball birthday enquiries with 60/90 minute duration. Other enquiries receive a private details link and a review task.
 - Signed customer links expire after 60 days. The website exchanges the fragment token for an HttpOnly cookie. Internal costs are excluded from customer responses.
 - Customers can complete event details. Changes invalidate the old quote before repricing.
-- Website `/owner` manages all leads, quotes, availability approvals and payment amounts. Legacy HQ Bubble operations links to this control centre.
+- Website `/owner` opens the existing private Bubble Leisure HQ at `https://bubble-leisure-hq.tosin-bankole20.chatgpt.site`. Its Ad automation tab displays the same HQ lead records through a server-only bridge; no second owner login is created.
 - Approval records venue, staffing/equipment confirmation, event instant, total, amount due now and explicit customer terms. No deposit or cancellation policy is invented.
 - Stripe Checkout uses server amounts and idempotency. Signed Stripe events verify session, approval, quote, GBP currency and paid amount before creating a confirmed Booking. A browser success redirect cannot confirm a booking.
 - A persisted transactional email queue sends enquiry/quote, confirmation and event reminder messages. Immediate delivery runs after the response; the daily worker retries pending work.
@@ -20,8 +20,7 @@ Set secrets in Vercel project settings; never put them in Git or chat.
 
 | Project | Variable | Purpose |
 | --- | --- | --- |
-| Both | `BUBBLE_SERVICE_SECRET` | Same new random value, at least 32 bytes; scoped website/HQ connection and customer link signatures. Do not rotate the existing generic HQ webhook credential. |
-| Website | `BUBBLE_OWNER_PASSWORD` | Owner chooses and enters a unique password, at least 24 characters. |
+| Website, existing private HQ and HQ backend | `BUBBLE_SERVICE_SECRET` | Same new random value, at least 32 bytes; scoped website/HQ connection and customer link signatures. Do not rotate the existing generic HQ webhook credential. |
 | HQ | `RESEND_API_KEY` | Sending key restricted to an approved domain. |
 | HQ | `BUBBLE_FROM_EMAIL` | Verified Bubble Leisure sender, e.g. `Bubble Leisure <bookings@your-verified-domain>`. |
 | HQ | `STRIPE_SECRET_KEY` | Start with the test-mode key; use live mode only after verification. |
@@ -36,7 +35,7 @@ For controlled preview testing, set website `BUBBLE_HQ_URL` to the paired HQ pre
 
 ## External setup and deployment order
 
-1. Configure the same scoped service credential on both Vercel projects and choose the website owner password. These credential/access changes need explicit approval; password entry is done by the owner.
+1. Configure the same scoped service credential on both Vercel projects and the existing private HQ runtime. Preserve the existing private HQ access controls. Browser credential/access changes need explicit approval or secure owner entry.
 2. Verify the Bubble Leisure sending domain in Resend, then set the sender and sending key. No Bubble Leisure domain is verified in the connected account as of 2 October 2026.
 3. Create a Stripe test webhook for `https://bankole-hq.vercel.app/api/bubble/payments/webhook`, subscribing to `checkout.session.completed` and `checkout.session.async_payment_succeeded`; set its signing secret.
 4. Set the Meta app signing secret, verify the existing page webhook subscription actually delivers `leadgen` events for page `1098181786706854`, and submit a test lead. The signature gate intentionally rejects delivery until configured. No ad campaign changes are needed.
@@ -47,7 +46,7 @@ For controlled preview testing, set website `BUBBLE_HQ_URL` to the paired HQ pre
 
 ## Availability and commercial controls
 
-The current repos contain no authoritative staffing/equipment calendar or venue booking integration. Approval remains an owner action. Fully automatic availability requires the actual calendar/booking provider, capacity rules, staff/equipment resources and approved payment/cancellation policy. Do not replace those with a fabricated availability flag.
+The current repos contain no authoritative staffing/equipment calendar or venue booking integration. The initial implementation retains an availability approval gate, which does not satisfy the requested fully unattended operation. The user explicitly requires humans only to arrive and host; automatic resource reservation, host assignment and host instructions are outstanding. Fully automatic availability requires the actual calendar/booking provider, capacity rules, staff/equipment resources and approved payment/cancellation policy. Do not replace those with a fabricated availability flag.
 
 Payment is disabled without both Stripe credentials. Customer confirmations require verified payment and a prior availability approval. Historic Windsor imports do not trigger a bulk messaging or call campaign. This release does not automate balance collection, refunds, cancellations or calendar rescheduling.
 
