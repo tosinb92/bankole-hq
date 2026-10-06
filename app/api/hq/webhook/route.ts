@@ -5,8 +5,10 @@ import { recordHqEvent, markSync } from "@/lib/server/hq-live";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const secret = process.env.HQ_WEBHOOK_SECRET;
-  if (!secret || req.headers.get("x-hq-webhook-secret") !== secret)
+  const suppliedSecret = req.headers.get("x-hq-webhook-secret");
+  const hqAccess = !!process.env.HQ_WEBHOOK_SECRET && suppliedSecret === process.env.HQ_WEBHOOK_SECRET;
+  const bubbleAccess = !!process.env.BUBBLE_HQ_WEBHOOK_SECRET && suppliedSecret === process.env.BUBBLE_HQ_WEBHOOK_SECRET;
+  if (!hqAccess && !bubbleAccess)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   let b: any;
   try { b = await req.json(); } catch {
@@ -15,6 +17,8 @@ export async function POST(req: NextRequest) {
   if (!b || typeof b !== "object" || Array.isArray(b))
     return NextResponse.json({ error: "Invalid event" }, { status: 400 });
   const source = String(b.source || "webhook");
+  if (!hqAccess && (source !== "bubble-leisure-website" || b.type !== "LEAD_CREATED"))
+    return NextResponse.json({ error: "Unauthorized event source" }, { status: 403 });
   let leadId: string | undefined;
   if (source === "bubble-leisure-website" && b.type === "LEAD_CREATED") {
     const p = b.payload;
