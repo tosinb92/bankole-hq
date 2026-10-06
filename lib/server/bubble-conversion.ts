@@ -16,24 +16,17 @@ export async function calculateBubbleQuote(leadId: string) {
   if (!activity || !guests) return { ok: false as const, reason: "missing-requirements", missing: [!activity && "activity", !guests && "group-size"].filter(Boolean) };
 
   const rules = await prisma.pricingRule.findMany({ where: { ventureId: lead.ventureId, active: true } });
-  // Approved pricing from the current Bubble Leisure Pricing sheet.
-  // Red/excluded offers are deliberately absent.
-  const approvedBase = duration === 60 ? 250 : duration === 90 ? 300 : null;
-  const approvedPrice = approvedBase == null ? null : approvedBase + Math.max(0, guests - 10) * 10;
+  const customerType = norm(req.customerType || req.customer_type || req.occasion);
   const candidates = rules.filter(r => {
     if (norm(r.activity) !== norm(activity)) return false;
+    if (r.customerType && norm(r.customerType) !== customerType) return false;
     if (r.groupMin != null && guests < r.groupMin) return false;
     if (r.groupMax != null && guests > r.groupMax) return false;
-    if (r.durationMinutes != null && duration != null && Math.abs(r.durationMinutes - duration) > 1) return false;
+    if (r.durationMinutes != null && (duration == null || Math.abs(r.durationMinutes - duration) > 1)) return false;
     return true;
   });
   if (!candidates.length) {
-    if (approvedPrice == null) return { ok: false as const, reason: "no-authoritative-pricing-rule", activity, guests, duration };
-    const customerPrice = approvedPrice;
-    let quote = await prisma.quote.findFirst({ where: { leadId: lead.id, status: { in: ["Draft","Ready","Sent"] } }, orderBy: { createdAt: "desc" } });
-    if (!quote) quote = await prisma.quote.create({ data: { leadId: lead.id, customerPrice, directCosts: 0, grossProfit: customerPrice, status: "Ready" } });
-    await prisma.lead.update({ where: { id: lead.id }, data: { estimatedValue: customerPrice, stage: "QUOTE" } });
-    return { ok: true as const, quoteId: quote.id, customerPrice, currency: "GBP", activity, guests, duration, ruleId: "approved-sheet-v1" };
+    return { ok: false as const, reason: "no-authoritative-pricing-rule", activity, guests, duration };
   }
 
   const rule = candidates.sort((a,b) => {
@@ -47,11 +40,17 @@ export async function calculateBubbleQuote(leadId: string) {
   if (!Number.isFinite(min) || !Number.isFinite(max) || min !== max) {
     return { ok: false as const, reason: "pricing-requires-review", ruleId: rule.id, range: { min, max } };
   }
+  if (min <= 0 || candidates.some(r => Number(r.basePriceMin) !== min || Number(r.basePriceMax) !== min)) {
+    return { ok: false as const, reason: "pricing-requires-review", ruleId: rule.id };
+  }
   const customerPrice = min;
   const directCosts = Number(rule.staffingCost) + Number(rule.equipmentCost);
+  if (!Number.isFinite(directCosts) || directCosts < 0) return { ok: false as const, reason: "pricing-requires-review", ruleId: rule.id };
   const grossProfit = customerPrice - directCosts;
   let quote = await prisma.quote.findFirst({ where: { leadId: lead.id, status: { in: ["Draft","Ready","Sent"] } }, orderBy: { createdAt: "desc" } });
+  if (quote?.status === "Sent" && Number(quote.customerPrice) !== customerPrice) return { ok: false as const, reason: "sent-quote-requires-review" };
   if (!quote) quote = await prisma.quote.create({ data: { leadId: lead.id, customerPrice, directCosts, grossProfit, status: "Ready" } });
+  else if (quote.status !== "Sent") quote = await prisma.quote.update({ where: { id: quote.id }, data: { customerPrice, directCosts, grossProfit, status: "Ready" } });
   await prisma.lead.update({ where: { id: lead.id }, data: { estimatedValue: customerPrice, stage: "QUOTE" } });
   return { ok: true as const, quoteId: quote.id, customerPrice, currency: "GBP", activity, guests, duration, ruleId: rule.id };
 }
@@ -61,7 +60,8 @@ export async function sendBubbleQuoteEmail(leadId: string, bookingUrl?: string) 
   const lead = await prisma.lead.findUnique({ where: { id: leadId }, include: { quotes: { orderBy: { createdAt: "desc" }, take: 1 } } });
   if (!lead?.email) return { sent: false as const, reason: "missing-email" };
   const quote = lead.quotes[0];
-  if (!quote || quote.status === "Draft") return { sent: false as const, reason: "quote-not-ready" };
+  if (quote?.status === "Sent") return { sent: false as const, reason: "already-sent", quoteId: quote.id };
+  if (!quote || quote.status !== "Ready") return { sent: false as const, reason: "quote-not-ready" };
   if (!apiKey) return { sent: false as const, reason: "resend-not-configured" };
   const req: any = lead.requirements || {};
   const price = Number(quote.customerPrice).toFixed(2);
