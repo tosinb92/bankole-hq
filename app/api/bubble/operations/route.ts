@@ -23,6 +23,12 @@ export async function PATCH(request:NextRequest){
  const stageMap:Record<string,any>={qualify:"REQUIREMENTS",venue:"VENUE_SOURCING",pricing:"PRICING",call:"CALL",quote:"QUOTE",followup:"FOLLOW_UP",deposit:"DEPOSIT",confirm:"CONFIRMED",won:"WON",lost:"LOST"};
  const stage=stageMap[action]; if(!stage)return NextResponse.json({error:"Unsupported lead action."},{status:400});
  const updated=await prisma.lead.update({where:{id},data:{stage}});
+ if(action==="deposit"||action==="confirm"||action==="won"){
+   const eventAtRaw=(lead.requirements as any)?.eventDateTime; const eventAt=eventAtRaw&&!Number.isNaN(Date.parse(String(eventAtRaw)))?new Date(String(eventAtRaw)):null;
+   const existingBooking=await prisma.booking.findFirst({where:{ventureId:lead.ventureId,status:{not:"CANCELLED"},eventAt:eventAt||undefined},orderBy:{createdAt:"desc"}});
+   if(!existingBooking) await prisma.booking.create({data:{ventureId:lead.ventureId,venueId:lead.venueId||null,status:action==="deposit"?"DEPOSIT_DUE":action==="confirm"?"CONFIRMED":"WON",eventAt}});
+   else await prisma.booking.update({where:{id:existingBooking.id},data:{status:action==="deposit"?"DEPOSIT_DUE":action==="confirm"?"CONFIRMED":"WON",venueId:lead.venueId||existingBooking.venueId}});
+ }
  if(action==="followup")await prisma.task.create({data:{ventureId:lead.ventureId,leadId:id,title:`Follow up ${lead.customerName}`,priority:2,status:"TODO"}});
  return NextResponse.json({updated:true,id:updated.id,stage:updated.stage});
 }
