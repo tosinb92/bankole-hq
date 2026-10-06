@@ -22,7 +22,7 @@ function harness() {
   const code = ts.transpileModule(fs.readFileSync(path.join(__dirname,'../app/api/hq/webhook/route.ts'),'utf8'), {
     compilerOptions: {module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}
   }).outputText;
-  const sandbox = {exports:{}, process:{env:{HQ_WEBHOOK_SECRET:'test-secret'}}, require(name) {
+  const sandbox = {exports:{}, process:{env:{HQ_WEBHOOK_SECRET:'test-secret', BUBBLE_HQ_WEBHOOK_SECRET:'bubble-secret'}}, require(name) {
     if (name === 'next/server') return {NextResponse:{json:(body,options={})=>({body,status:options.status||200})}};
     if (name === 'crypto') return require('node:crypto');
     if (name.endsWith('/prisma')) return {prisma};
@@ -34,6 +34,8 @@ function harness() {
   return {post:sandbox.exports.POST,request,leads,events,prisma};
 }
 const enquiry={id:'test-enquiry-1',source:'bubble-leisure-website',type:'LEAD_CREATED',payload:{name:'SIMULATION Customer',email:'customer@example.invalid',occasion:'Birthday',activity:'Bubble Football',location:'Ipswich',guests:'12'}};
+
+test('website secret accepts Bubble enquiries and rejects other event sources',async()=>{const h=harness();assert.equal((await h.post(h.request(enquiry,'bubble-secret'))).status,200);assert.equal((await h.post(h.request({source:'another-system',type:'UPDATE'},'bubble-secret'))).status,403);assert.equal(h.leads.length,1);assert.equal(h.events.length,1);});
 
 test('rejects unauthorised enquiries without writing records',async()=>{const h=harness();assert.equal((await h.post(h.request(enquiry,'wrong'))).status,401);assert.equal(h.leads.length,0);});
 test('valid enquiry creates a usable lead and a linked activity',async()=>{const h=harness();const r=await h.post(h.request(enquiry));assert.equal(r.status,200);assert.equal(r.body.leadId,'lead-1');assert.equal(h.leads[0].requirements.players,'12');assert.equal(h.leads[0].requestedLocation,'Ipswich');assert.equal(h.events[0].payload.leadId,'lead-1');});
