@@ -189,6 +189,17 @@ async function ingestLeadgenId(leadgenId: string, webhookValue: any) {
   // remains available for voice qualification or a pricing task.
   const pricing = await calculateBubbleQuote(lead.id);
   const message = pricing.ok ? await sendBubbleQuoteEmail(lead.id) : { sent: false, reason: pricing.reason };
+  if (!message.sent) {
+    await prisma.task.create({
+      data: {
+        ventureId: venture.id,
+        leadId: lead.id,
+        title: `Respond to ${lead.customerName}: ${message.reason}`,
+        priority: 1,
+        status: "TODO",
+      },
+    });
+  }
 
   const voice = await startVoiceCall({
     id: lead.id,
