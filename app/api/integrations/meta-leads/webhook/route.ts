@@ -264,5 +264,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ received: true, processed: results.length, results });
+  const failed = results.some((result) => "error" in result);
+  // Meta must receive a failure response when a lead could not be saved, so
+  // it can retry delivery. Successfully saved lead IDs are deduplicated above.
+  return NextResponse.json(
+    { received: true, processed: results.length, results },
+    { status: failed ? 503 : 200 }
+  );
 }
