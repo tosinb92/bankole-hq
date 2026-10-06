@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         stage: "NEW_LEAD", requirements: {
           source: "Bubble Leisure Website", websiteEnquiryId: enquiryId,
           occasion: p.occasion, activity: p.activity, eventDateTime: p.date || null,
-          players: p.guests || null, notes: p.notes || null, submittedAt: p.receivedAt || null
+          players: p.guests || null, duration: p.duration || null, customerType: p.customerType || null, notes: p.notes || null, submittedAt: p.receivedAt || null
         }
       } });
     });
