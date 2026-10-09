@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/server/prisma";
 import { recordHqEvent, markSync } from "@/lib/server/hq-live";
+import { calculateBubbleQuote, sendBubbleQuoteEmail } from "@/lib/server/bubble-conversion";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
@@ -45,6 +46,16 @@ export async function POST(req: NextRequest) {
       } });
     });
     leadId = lead.id;
+    // Website enquiries now capture quote-ready details. Try to turn the lead into
+    // revenue immediately when an authoritative deterministic pricing rule exists.
+    // If pricing still needs human review, create one visible task instead of silently stopping.
+    const pricing = await calculateBubbleQuote(lead.id);
+    if (pricing.ok) {
+      await sendBubbleQuoteEmail(lead.id);
+    } else {
+      const existingPricingTask = await prisma.task.findFirst({ where: { leadId: lead.id, status: { in: ["TODO", "IN_PROGRESS"] }, title: { startsWith: "Price " } } });
+      if (!existingPricingTask) await prisma.task.create({ data: { ventureId: venture.id, leadId: lead.id, title: `Price ${lead.customerName} enquiry`, priority: 1, status: "TODO" } });
+    }
     const recorded = await prisma.$queryRaw<any[]>`SELECT "id" FROM "ActivityEvent" WHERE "source"=${source} AND "sourceRef"=${enquiryId} LIMIT 1`;
     if (!recorded.length) await recordHqEvent({ source, sourceRef: enquiryId,
       eventType: "LEAD_CREATED", ventureName: "Bubble Leisure", title: b.title || "New Bubble Leisure enquiry",
