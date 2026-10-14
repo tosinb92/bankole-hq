@@ -65,3 +65,29 @@ export async function POST(req:Request) {
   return NextResponse.json(result);
  }catch{console.error('Bubble WhatsApp processing failed');return NextResponse.json({error:'Unable to save enquiry'},{status:503});}
 }
+
+export async function PATCH(req:Request){
+ if(!authorised(req.headers.get('x-bubble-whatsapp-secret')))return NextResponse.json({error:'Unauthorized'},{status:401});
+ const b=await req.json().catch(()=>null);
+ if(!b||!/^SM[0-9a-f]{32}$/i.test(b.sid)||!['claim','sent','failed'].includes(b.action))return NextResponse.json({error:'Invalid delivery update'},{status:400});
+ if(b.action==='sent'&&(typeof b.outboundId!=='string'||!b.outboundId.startsWith('wamid.')||b.outboundId.length>500))return NextResponse.json({error:'Invalid receipt'},{status:400});
+ try{
+  const result=await prisma.$transaction(async tx=>{
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'bubble-whatsapp-delivery:'+b.sid}))`;
+   const venture=await tx.venture.findUnique({where:{name:'Bubble Leisure'}});
+   if(!venture)throw new Error('Missing venture');
+   const record=await tx.communication.findFirst({where:{ventureId:venture.id,providerMessageId:b.sid}});
+   if(!record)throw new Error('Missing message');
+   const state=JSON.parse(record.body||'{}');
+   if(b.action==='claim'){
+    if(state.delivery==='sent')return {claimed:false,delivery:'sent'};
+    if(state.delivery==='sending'&&Date.now()-Number(state.claimedAt||0)<60000)return {claimed:false,delivery:'sending'};
+    await tx.communication.update({where:{id:record.id},data:{body:JSON.stringify({...state,delivery:'sending',claimedAt:Date.now()})}});
+    return {claimed:true};
+   }
+   await tx.communication.update({where:{id:record.id},data:{body:JSON.stringify({...state,delivery:b.action,outboundId:b.outboundId||null})}});
+   return {ok:true};
+  });
+  return NextResponse.json(result);
+ }catch{return NextResponse.json({error:'Delivery update failed'},{status:503});}
+}
