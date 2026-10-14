@@ -38,7 +38,15 @@ export async function POST(req:Request) {
     try {
      const r=await fetch('https://api.vapi.ai/chat',{method:'POST',headers:{Authorization:'Bearer '+process.env.VAPI_API_KEY,'content-type':'application/json'},
       body:JSON.stringify({assistantId:process.env.VAPI_ASSISTANT_ID,input:m.body,...(chatId?{previousChatId:chatId}:{})}),signal:AbortSignal.timeout(6000)});
-     if(!r.ok){aiStatus='vapi-http-'+r.status;throw new Error('Vapi request failed');}
+     if(!r.ok){
+      aiStatus='vapi-http-'+r.status;
+      if(r.status===402){
+       const reason=(await r.text()).toLowerCase();
+       if(reason.includes('purchase credits')||reason.includes('completed payment'))aiStatus='vapi-completed-purchase-required';
+       else if(reason.includes('payment method')||reason.includes('card on file'))aiStatus='vapi-payment-method-required';
+      }
+      throw new Error('Vapi request failed');
+     }
      const data=await r.json();
      const output=(data.output||[]).filter((x:any)=>x.role==='assistant'&&typeof x.content==='string').map((x:any)=>x.content).join('\n').trim();
      if(!output){aiStatus='empty-ai-reply';throw new Error('Empty Vapi reply');}
