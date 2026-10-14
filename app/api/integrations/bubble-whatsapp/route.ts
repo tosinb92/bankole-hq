@@ -38,12 +38,12 @@ export async function POST(req:Request) {
     try {
      const r=await fetch('https://api.vapi.ai/chat',{method:'POST',headers:{Authorization:'Bearer '+process.env.VAPI_API_KEY,'content-type':'application/json'},
       body:JSON.stringify({assistantId:process.env.VAPI_ASSISTANT_ID,input:m.body,...(chatId?{previousChatId:chatId}:{})}),signal:AbortSignal.timeout(6000)});
-     if(!r.ok)throw new Error('Vapi HTTP '+r.status);
+     if(!r.ok){aiStatus='vapi-http-'+r.status;throw new Error('Vapi request failed');}
      const data=await r.json();
      const output=(data.output||[]).filter((x:any)=>x.role==='assistant'&&typeof x.content==='string').map((x:any)=>x.content).join('\n').trim();
-     if(!output)throw new Error('Empty Vapi reply');
+     if(!output){aiStatus='empty-ai-reply';throw new Error('Empty Vapi reply');}
      reply=output.slice(0,1500);chatId=data.id;aiStatus='replied';
-    }catch{console.error('Bubble WhatsApp AI unavailable');}
+    }catch(error){if(aiStatus==='unavailable')aiStatus=error instanceof Error&&error.name==='TimeoutError'?'ai-timeout':'ai-request-failed';console.error('Bubble WhatsApp AI unavailable',aiStatus);}
    }
    const email=m.body.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
    const transcript=[...(Array.isArray(state.transcript)?state.transcript:[]),{sid:m.sid,incoming:m.body,reply,at:new Date().toISOString(),mediaCount:m.mediaCount}].slice(-50);
