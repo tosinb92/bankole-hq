@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export async function GET() {
  if (!process.env.DATABASE_URL) return NextResponse.json({error:"HQ data connection is unavailable."},{status:503});
  const [ventures,tasks,leads,deals,opportunities,approvals,revenue]=await Promise.all([
-  prisma.venture.findMany({select:{id:true,name:true}}),
+  prisma.venture.findMany({select:{id:true,name:true,status:true}}),
   prisma.task.findMany({where:{status:{not:"DONE"}},orderBy:{createdAt:"desc"},take:20,include:{venture:{select:{name:true}}}}),
   prisma.lead.findMany({orderBy:{updatedAt:"desc"},take:50,include:{venture:{select:{name:true}}}}),
   prisma.deal.findMany({orderBy:{createdAt:"desc"},take:50,include:{venture:{select:{name:true}}}}),
@@ -18,7 +18,7 @@ export async function GET() {
  const sync=await syncStatuses().catch(()=>[]);
  const queue:any[]=[];
  liveEvents.forEach((e:any)=>queue.push({id:"event-"+e.id,business:e.ventureName??"HQ",type:e.eventType,title:e.title,detail:e.detail??"Live activity",priority:e.importance??60,action:"business",source:e.source}));
- tasks.forEach(t=>queue.push({id:"task-"+t.id,business:t.venture?.name??"HQ",type:"TASK",title:t.title,detail:"Open task",priority:75,action:"business",source:"HQ database"}));
+ tasks.forEach(t=>queue.push({id:"task-"+t.id,business:t.venture?.name??"HQ",type:"TASK",title:t.title,detail:"Open task",dueAt:t.dueAt,priority:75,action:"business",source:"HQ database"}));
  approvals.forEach(x=>queue.push({id:"approval-"+x.id,business:x.venture?.name??"HQ",type:"APPROVAL",title:"Review "+x.skill.name+" output",detail:"Work is waiting for your approval.",priority:95,action:"business",source:"HQ database"}));
  opportunities.forEach(o=>queue.push({id:"opp-"+o.id,business:o.venture?.name??"HQ",type:"OPPORTUNITY",title:o.title,detail:o.brief.slice(0,180)||"Opportunity captured in Intelligence.",priority:85,action:"intelligence",source:"HQ database"}));
  const activeDeals=deals.filter(x=>!["CLOSED","LOST"].includes(x.stage.toUpperCase()));
@@ -30,5 +30,5 @@ export async function GET() {
  // Deal and revenue records currently have no currency field. Do not aggregate them into a misleading GBP total.
  const pipelineValue:null=null;
  const recordedRevenue:null=null;
- return NextResponse.json({generatedAt:new Date().toISOString(),dataPolicy:"Live HQ database records and authorised integration events only; no hard-coded operator context or demo records.",metrics:{ventures:ventures.length,openTasks:tasks.length,activeLeads:activeLeads.length,activeDeals:activeDeals.length,opportunities:opportunities.length,approvals:approvals.length,pipelineValue,leadValue,recordedRevenue,currencyNotice:"Deal/revenue totals are hidden until currency is recorded per entry. Lead estimates are GBP for the current Bubble Leisure workflow."},queue:queue.slice(0,24),integrations:Object.fromEntries(sync.map((x:any)=>[x.label,`${x.status}${x.lastSuccessAt?` · ${new Date(x.lastSuccessAt).toISOString()}`:""}`]))});
+ return NextResponse.json({generatedAt:new Date().toISOString(),ventures, dataPolicy:"Live HQ database records and authorised integration events only; no hard-coded operator context or demo records.",metrics:{ventures:ventures.length,openTasks:tasks.length,activeLeads:activeLeads.length,activeDeals:activeDeals.length,opportunities:opportunities.length,approvals:approvals.length,pipelineValue,leadValue,recordedRevenue,currencyNotice:"Deal/revenue totals are hidden until currency is recorded per entry. Lead estimates are GBP for the current Bubble Leisure workflow."},queue:queue.slice(0,24),integrations:Object.fromEntries(sync.map((x:any)=>[x.label,`${x.status}${x.lastSuccessAt?` · ${new Date(x.lastSuccessAt).toISOString()}`:""}`]))});
 }

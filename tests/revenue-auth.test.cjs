@@ -1,0 +1,9 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const {NextRequest,NextResponse}=require('next/server');
+const api={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/server/revenue-auth.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:api,require,Buffer,Date,process:{env:{NODE_ENV:'production',REVENUE_ACCESS_KEY:'test-owner-capability-only'}}});
+const url='https://hq.example/api/revenue';
+const req=(headers={},method='GET')=>new NextRequest(url,{headers,method});
+test('anonymous requests and arbitrary cookies cannot read sales records',()=>{assert.equal(api.revenueAuthorised(req()),false);assert.equal(api.revenueAuthorised(req({cookie:'hq_revenue_session=123.fake.bad'})),false)});
+test('owner sign-in creates private secure expiring session',()=>{const response=api.rememberRevenue(req({authorization:'Bearer test-owner-capability-only'}),NextResponse.json({ok:true}));const cookie=response.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/Secure/);assert.match(cookie,/SameSite=strict/);assert.match(cookie,/Max-Age=2592000/);assert.equal(api.revenueAuthorised(req({cookie:cookie.split(';')[0]})),true)});
+test('session modifications and cross-origin writes are rejected',()=>{const response=api.rememberRevenue(req({authorization:'Bearer test-owner-capability-only'}),NextResponse.json({ok:true}));const cookie=response.headers.get('set-cookie').split(';')[0];assert.equal(api.revenueAuthorised(req({cookie:cookie+'x'})),false);assert.equal(api.sameOrigin(req({cookie,origin:'https://evil.example'},'PATCH')),false);assert.equal(api.sameOrigin(req({cookie,origin:'https://hq.example'},'PATCH')),true)});
+test('sign out expires the session cookie',()=>{assert.match(api.forgetRevenue(NextResponse.json({ok:true})).headers.get('set-cookie'),/Max-Age=0/)});

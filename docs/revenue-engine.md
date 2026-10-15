@@ -31,3 +31,14 @@ The owner explicitly approved publishing these changes to the existing public re
 - Normal owner account sign-in; the initial release uses a private scoped capability.
 
 Won/accepted records are never reported as collected revenue. No live customer send or payment was used for testing. No subscriptions or paid APIs were purchased.
+
+
+## Simplified workspace redesign
+
+The reference-led blue glass design now covers the HQ shell, overview, business directory, supporting tools, Campaign Studio and Sales. Navigation is shared across the root and sales pages. Overview uses current records rather than invented charts or seed metrics; null monetary totals are not shown as zero. Business cards come from the existing Venture table.
+
+Sales uses Do next / Waiting / Completed. A task outcome is recorded transactionally in ActivityEvent, and either creates a real next Task, schedules the existing task for tomorrow, or closes it with a recorded reason. Opening an external source does not mark the work complete. Lead follow-ups retain optimistic concurrency and suppression checks. No send button is shown where delivery is not connected.
+
+After an authenticated sign-in, a signed, HttpOnly, Secure, SameSite=Strict cookie keeps that browser signed in for 30 days. The owner key is cleared from client state after login. Cookie writes require a same-origin request; existing bearer API integrations remain supported. Signing out expires that cookie. A Revenue task link from Overview opens the exact task.
+
+Validation: 31 automated checks including auth cookie safeguards and task advancement; TypeScript and production build. Live browser and API checks are recorded in the completion response. No customer message, payment, or external purchase is part of these tests.
