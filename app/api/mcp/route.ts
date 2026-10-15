@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
+import { revenueState, ingestSignal, progressRevenue } from "@/lib/server/revenue-engine";
+import { signalSchema, progressSchema } from "@/lib/revenue";
 import { prisma } from "@/lib/server/prisma";
 import { recordHqEvent, recentHqEvents, syncStatuses } from "@/lib/server/hq-live";
 
@@ -148,6 +150,9 @@ function buildServer() {
     }
   );
 
+  server.registerTool("get_revenue_engine", {description:"Read real HQ sales records, evidence scores, next actions and follow-ups. Won is not collected cash.",inputSchema:z.object({})},async()=>{const out=await revenueState();return {content:[{type:"text" as const,text:JSON.stringify(out)}]};});
+  server.registerTool("ingest_buying_signal", {description:"Store a sourced buying signal in the existing HQ CRM, deduplicating by business and canonical source. Do not invent evidence or contacts.",inputSchema:signalSchema},async(args)=>{const out=await ingestSignal(args);return {content:[{type:"text" as const,text:JSON.stringify(out)}]};});
+  server.registerTool("progress_revenue_lead", {description:"Save the next action, unsent outreach draft, existing offer URL, suppression and dated HQ follow-up. Does not send messages or collect payment.",inputSchema:progressSchema},async(args)=>{const out=await progressRevenue(args);return {content:[{type:"text" as const,text:JSON.stringify(out)}]};});
   return server;
 }
 

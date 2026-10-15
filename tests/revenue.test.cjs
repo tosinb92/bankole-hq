@@ -1,0 +1,11 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const exportsObj={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/revenue.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:exportsObj,require,URL,Date});
+const {scoreSignal,canonicalUrl,signalSchema}=exportsObj;
+const signal={ventureName:'FireComplianceUK',customerName:'Buyer',sourceUrl:'https://buyer.example/tender',evidence:'Buyer requests fire door inspections by the deadline.',observedAt:new Date().toISOString(),intent:'explicit',urgency:25,fit:20,evidenceQuality:10,contactEmail:'procurement@buyer.example',contactSource:'https://buyer.example/contact',nextAction:'Verify submission procedure'};
+test('explicit evidenced demand can reach immediate priority',()=>assert.equal(scoreSignal(signal).score,100));
+test('inference and weak signals never become priority',()=>{assert.equal(scoreSignal({...signal,intent:'inferred'}).score,59);assert.ok(scoreSignal({...signal,intent:'weak'}).score<60)});
+test('expired notices score zero',()=>assert.equal(scoreSignal({...signal,deadline:'2020-01-01T00:00:00Z'}).score,0));
+test('stale evidence cannot be an immediate lead',()=>assert.ok(scoreSignal({...signal,observedAt:'2020-01-01T00:00:00Z'}).score<60));
+test('contact source and financial provenance required',()=>{assert.equal(signalSchema.safeParse({...signal,contactSource:undefined}).success,false);assert.equal(signalSchema.safeParse({...signal,estimatedValue:1000}).success,false)});
+test('unsafe links and future observations rejected',()=>{assert.equal(signalSchema.safeParse({...signal,sourceUrl:'javascript:alert(1)'}).success,false);assert.equal(signalSchema.safeParse({...signal,observedAt:'2099-01-01T00:00:00Z'}).success,false)});
+test('dedup keys remove tracking but keep notice identity',()=>{assert.equal(canonicalUrl('https://buyer.example/tender/?utm_source=x&id=5#part'),'https://buyer.example/tender/?id=5');assert.notEqual(canonicalUrl('https://buyer.example/?id=5'),canonicalUrl('https://buyer.example/?id=6'))});
