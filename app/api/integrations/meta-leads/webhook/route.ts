@@ -5,7 +5,6 @@ import { calculateBubbleQuote, sendBubbleQuoteEmail } from "@/lib/server/bubble-
 
 export const runtime = "nodejs";
 
-export const runtime="nodejs";
 export const maxDuration=60;
 const PAGE_ID = "1098181786706854";
 
