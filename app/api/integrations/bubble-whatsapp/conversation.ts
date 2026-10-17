@@ -14,6 +14,10 @@ export function updateEnquiry(previous: Enquiry, input: string, now = new Date()
   if (/\badults\b/.test(text)) q.audience = 'adults';
   const count = text.match(/\b(\d{1,3})\s*(?:children|kids|players|participants|people|adults)\b/);
   if (count && Number(count[1]) > 0) q.participants = Number(count[1]);
+  const bareNumber = text.trim().match(/^(\d{1,3})$/);
+  if (bareNumber && Number(bareNumber[1]) > 0 && !q.participants) q.participants = Number(bareNumber[1]);
+  else if (bareNumber && !q.duration) q.duration = Number(bareNumber[1]);
+  else if (bareNumber && !q.ages && Number(bareNumber[1]) < 100) q.ages = bareNumber[1];
   const duration = text.match(/\b(\d{1,3})\s*(?:minutes?|mins?)\b/);
   const hours = text.match(/\b(1(?:\.5)?|2)\s*hours?\b/);
   if (duration) q.duration = Number(duration[1]);
@@ -50,7 +54,8 @@ export function replyFor(q: Enquiry, input: string, now = new Date()): string {
   if (!input.trim()) return 'Please type your enquiry here. Attachments and voice notes are not currently read by this assistant.';
   if (/\b(cancel|refund|complaint|reschedule|change my booking)\b/i.test(input)) return 'Your booking change or cancellation request has been saved for review. Your booking and any payment terms remain unchanged until the request is processed; no refund or new date has been confirmed.';
   if (!q.activity) return 'Which activity would you like, and how many people will take part?';
-  if (!q.participants || !q.duration) return `For your ${q.activity} enquiry, please send ${!q.participants?'the number of players':''}${!q.participants&&!q.duration?' and ':''}${!q.duration?'the session length in minutes':''}.`;
+  if (!q.participants) return `How many people will take part in ${q.activity}?`;
+  if (!q.duration) return `How many minutes would you like for ${q.participants} players? For child bubble football, the documented options are 60 or 90 minutes.`;
   const today = now.toISOString().slice(0,10);
   const missing = [];
   if (!q.location) missing.push('the town or postcode');
