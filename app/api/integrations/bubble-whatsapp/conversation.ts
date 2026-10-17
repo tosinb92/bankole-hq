@@ -61,9 +61,16 @@ export function updateEnquiry(previous: Enquiry, input: string, now = new Date()
   return q;
 }
 export function isConnectionTest(text: string) { return /^\s*automation test(?:\s+\d+)?[.!]?\s*$/i.test(text); }
+// Verified against the owner's live Bubble Leisure Pricing calculator, 18 October 2026.
+// These are activity selling prices; no venue, travel or fulfilment is implied.
+export function activityPrice(q:Enquiry):number|null {
+  if (!['bubble football','Nerf'].includes(q.activity||'') || q.audience !== 'children' || !q.participants || (q.duration !== 60 && q.duration !== 90)) return null;
+  return (q.duration===60?250:300)+Math.max(0,q.participants-10)*10;
+}
 export function activityEstimate(q: Enquiry): string {
-  if (q.activity !== 'bubble football' || q.audience !== 'children' || !q.participants || (q.duration !== 60 && q.duration !== 90)) return '';
-  return `Your activity estimate is £${(q.duration === 60 ? 250 : 300)+Math.max(0,q.participants-10)*10} for ${q.participants} children and ${q.duration} minutes. This includes 10 players, then £10 per additional child. Venue hire, travel and extras are additional; availability is unconfirmed.`;
+  const price=activityPrice(q);
+  if (price===null) return '';
+  return `Your activity estimate is £${price} for ${q.participants} children and ${q.duration} minutes of ${q.activity}. This includes 10 players, then £10 per additional child. Venue hire, travel and extras are additional; availability is unconfirmed.`;
 }
 export function replyFor(q: Enquiry, input: string, now = new Date()): string {
   if (isConnectionTest(input)) return 'Bubble Leisure connection test received. This is a test only; no booking or availability has been confirmed.';
@@ -91,7 +98,7 @@ export function replyFor(q: Enquiry, input: string, now = new Date()): string {
     const showPrice=/\b(price|cost|much|quote|minutes?|mins?|hours?|players|children|kids)\b/i.test(input);
     return `${showPrice?activityEstimate(q):''} ${prompts[missing[0]]}`.trim();
   }
-  const childTariff = q.activity === 'bubble football' && q.audience === 'children' && (q.duration === 60 || q.duration === 90);
+  const childTariff = activityPrice(q)!==null;
   const summary = `${q.activity}, ${q.participants} players aged ${q.ages}, ${q.duration} minutes, ${q.location}, ${q.date} at ${q.time}`;
   const price = childTariff ? activityEstimate(q) : 'This combination needs a checked price before a quote can be issued.';
   return `Your enquiry details are saved: ${summary}. ${price} ${q.venue === 'needed'?'You need a venue; its price and availability still require confirmation.':'You are providing the venue; its suitability and booking time still require confirmation.'} Equipment and an accepted operator must also be confirmed. No slot is reserved and no booking is confirmed. Once the date can be provisionally held, the holding deposit is £${HOLDING_DEPOSIT_GBP}, credited towards your total. Final confirmation follows after the venue is confirmed and any required venue payment is recorded. The enquiry is awaiting an availability check; a payment link is not available in this chat yet.`;

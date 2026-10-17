@@ -54,4 +54,11 @@ test('UK and ISO dates, 24-hour time and own garden are retained',()=>{
  }
  assert.equal(updateEnquiry({},'31/02/2026',now).date,undefined);
 });
+test('Nerf enquiry gets the live single-activity tariff immediately',()=>{
+ const input='How much for a nerf gun war for 60 minutes for 20 kids';
+ const q=updateEnquiry({},input,now);
+ assert.match(replyFor(q,input,now),/£350/);
+ assert.match(replyFor(q,input,now),/Nerf/);
+ assert.doesNotMatch(replyFor(q,input,now),/bubble football/);
+});
 

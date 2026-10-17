@@ -42,5 +42,9 @@ test('durable event details survive transcript truncation and a new invocation',
  assert.equal(res.status,200);assert.match(body.reply,/£350/);
  assert.equal(lead.requirements.enquiry.participants,15);
  assert.equal(lead.requirements.transcript.length,50);
+ assert.equal(lead.requirements.activityQuote.amount,350);
+ const reference=lead.requirements.activityQuote.reference;
+ await route.POST(request({...base,sid:'SM'+'5'.repeat(32),body:'How much?'}));
+ assert.equal(lead.requirements.activityQuote.reference,reference);
 });
 
