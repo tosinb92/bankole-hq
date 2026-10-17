@@ -32,8 +32,11 @@ export async function POST(req:Request) {
    if(m.timestamp!==undefined&&typeof state.lastInboundTimestamp==='number'&&m.timestamp<state.lastInboundTimestamp)return {skipReply:true};
    if(!lead)lead=await tx.lead.create({data:{ventureId:venture.id,customerName:m.name||'WhatsApp enquiry',phone:m.from.slice(9),requirements:{source:'WhatsApp'},stage:'NEW_LEAD'}});
    // Derive fields only from customer text, never from an old assistant's claims.
-   const enquiryBefore=recoverEnquiry(state.transcript);
-   const enquiry=isConnectionTest(m.body)?enquiryBefore:updateEnquiry(enquiryBefore,m.body);
+   // The durable enquiry outlives the rolling transcript; replay is for legacy chats only.
+   const enquiryBefore=state.enquiry && typeof state.enquiry==='object' && !Array.isArray(state.enquiry)
+    ? state.enquiry : recoverEnquiry(state.transcript);
+   const previousReply=Array.isArray(state.transcript)?state.transcript.at(-1)?.reply:undefined;
+   const enquiry=isConnectionTest(m.body)?enquiryBefore:updateEnquiry(enquiryBefore,m.body,new Date(),previousReply);
    const reply=replyFor(enquiry,m.body);
    const aiStatus='controlled-qualification';
    const email=m.body.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
@@ -80,3 +83,4 @@ export async function PATCH(req:Request){
   return NextResponse.json(result);
  }catch{return NextResponse.json({error:'Delivery update failed'},{status:503});}
 }
+
