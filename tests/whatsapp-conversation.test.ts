@@ -19,7 +19,7 @@ test('customer source replay ignores assistant hallucinations',()=>{
 });
 test('unsupported tariffs never invented',()=>{
  const q={activity:'bubble football',audience:'children' as const,participants:15,duration:120,location:'Ipswich',date:'2026-10-25',time:'11:00',ages:'10-13',venue:'needed' as const};
- assert.doesNotMatch(replyFor(q,'yes',now),/£/); assert.match(replyFor(q,'yes',now),/checked price/);
+ assert.doesNotMatch(replyFor(q,'yes',now),/activity estimate is £/); assert.match(replyFor(q,'yes',now),/checked price/);
 });
 test('invalid and past dates require clarification',()=>{
  const q={activity:'bubble football',participants:15,duration:90,location:'Ipswich'};
