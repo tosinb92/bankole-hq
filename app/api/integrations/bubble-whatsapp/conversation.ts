@@ -1,6 +1,7 @@
 export type Enquiry = {
   activity?: string; participants?: number; duration?: number; location?: string; audience?: 'children' | 'adults';
   date?: string; time?: string; ages?: string; venue?: 'own' | 'needed';
+  package?: 'single' | 'combo' | 'premium-combo'; comboDeclined?: boolean;
 };
 export const HOLDING_DEPOSIT_GBP = 70;
 const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
@@ -10,6 +11,11 @@ export function updateEnquiry(previous: Enquiry, input: string, now = new Date()
   // An explicit activity change starts a new enquiry; never carry a former party's details across.
   const q: Enquiry = activity && previous.activity && activity !== previous.activity ? {activity} : {...previous};
   if (activity) q.activity = activity;
+  const combo=/\b(combo|combination|mixed[- ]activit(?:y|ies)|two activities|2 activities)\b/.test(text);
+  const asksAboutCombo=/^\s*(?:what|how|tell me|can you explain)\b/.test(text);
+  if (/\b(?:no|without|not|don't want|do not want)\b.{0,20}\b(?:combo|combination|mixed[- ]activity)\b/.test(text)) {q.package='single';q.comboDeclined=true;}
+  else if (/\b(?:single activity|one activity|1 activity)\b/.test(text)) q.package='single';
+  else if (combo&&!asksAboutCombo) {q.package=/\bpremium\b/.test(text)?'premium-combo':'combo';q.comboDeclined=false;}
   if (/\b(children|kids)\b/.test(text)) q.audience = 'children';
   if (/\badults\b/.test(text)) q.audience = 'adults';
   const count = text.match(/\b(\d{1,3})\s*(?:children|kids|players|participants|people|adults)\b/);
@@ -25,6 +31,7 @@ export function updateEnquiry(previous: Enquiry, input: string, now = new Date()
   const hours = text.match(/\b(1(?:\.5)?|2)\s*hours?\b/);
   if (duration) q.duration = Number(duration[1]);
   else if (hours) q.duration = Number(hours[1]) * 60;
+  else if (/would you like a 90-minute session/i.test(previousReply)&&/^\s*(yes|yes please|please do|go ahead)[.!]?\s*$/i.test(input)) q.duration=90;
   const postcode = input.match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i);
   const town = input.match(/\b(?:in|near|location\s*:?|town\s*:?)\s+([a-z][a-z '\-]{1,50}?)(?=\s+(?:on|for|at|with|around)\b|[,.!?]|$)/i);
   const knownTown = input.match(/\b(Ipswich|London|Suffolk)\b/i);
@@ -65,12 +72,20 @@ export function isConnectionTest(text: string) { return /^\s*automation test(?:\
 // These are activity selling prices; no venue, travel or fulfilment is implied.
 export function activityPrice(q:Enquiry):number|null {
   if (!['bubble football','Nerf'].includes(q.activity||'') || q.audience !== 'children' || !q.participants || (q.duration !== 60 && q.duration !== 90)) return null;
-  return (q.duration===60?250:300)+Math.max(0,q.participants-10)*10;
+  const combo=q.package==='combo'||q.package==='premium-combo';
+  if(combo&&q.duration!==90)return null;
+  const base=combo?(q.package==='premium-combo'?395:350):(q.duration===60?250:300);
+  return base+Math.max(0,q.participants-10)*10;
 }
 export function activityEstimate(q: Enquiry): string {
   const price=activityPrice(q);
   if (price===null) return '';
-  return `Your activity estimate is £${price} for ${q.participants} children and ${q.duration} minutes of ${q.activity}. This includes 10 players, then £10 per additional child. Venue hire, travel and extras are additional; availability is unconfirmed.`;
+  const combo=q.package==='combo'||q.package==='premium-combo';
+  const label=combo?'mixed-activity combination':q.activity==='bubble football'?'Bubble Football':q.activity;
+  const bubbles=q.activity==='bubble football'?' Each booking includes a maximum of 10 bubbles, with children taking turns.':'';
+  const longer=(q.participants||0)>15&&(q.duration||0)<90?` For ${q.participants} children, I recommend 90 minutes so everyone gets adequate playing time.`:'';
+  const upgrade=!combo&&!q.comboDeclined?' You can also upgrade to a mixed-activity combination for more variety.':'';
+  return `Your activity estimate is £${price} for a ${q.duration}-minute ${label} session for ${q.participants} children.${bubbles}${longer}${upgrade} Venue hire, travel and extras are additional, subject to availability.`;
 }
 export function replyFor(q: Enquiry, input: string, now = new Date()): string {
   if (isConnectionTest(input)) return 'Bubble Leisure connection test received. This is a test only; no booking or availability has been confirmed.';
@@ -78,7 +93,9 @@ export function replyFor(q: Enquiry, input: string, now = new Date()): string {
   if (/\b(cancel|refund|complaint|reschedule|change my booking)\b/i.test(input)) return 'Your booking change or cancellation request has been saved for review. Your booking and any payment terms remain unchanged until the request is processed; no refund or new date has been confirmed.';
   if (!q.activity) return 'Which activity would you like, and how many people will take part?';
   if (!q.participants) return `How many people will take part in ${q.activity}?`;
-  if (!q.duration) return `How many minutes would you like for ${q.participants} players? For child bubble football, the documented options are 60 or 90 minutes.`;
+  if (!q.duration) return q.audience==='children'&&q.participants>15
+    ? `For ${q.participants} children, I recommend 90 minutes so everyone gets adequate playing time. Would you like a 90-minute session?`
+    : `How many minutes would you like for ${q.participants} players? The options are 60 or 90 minutes.`;
   const today = now.toISOString().slice(0,10);
   const missing = [];
   if (!q.location) missing.push('the town or postcode');

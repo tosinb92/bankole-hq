@@ -61,4 +61,31 @@ test('Nerf enquiry gets the live single-activity tariff immediately',()=>{
  assert.match(replyFor(q,input,now),/Nerf/);
  assert.doesNotMatch(replyFor(q,input,now),/bubble football/);
 });
+test('bubble estimate explains equipment capacity without exposing price arithmetic',()=>{
+ const q=updateEnquiry({},'Bubble football for 15 kids for 60 minutes',now);
+ const reply=replyFor(q,'how much?',now);
+ assert.match(reply,/£300/);assert.match(reply,/maximum of 10 bubbles/);assert.match(reply,/taking turns/);
+ assert.doesNotMatch(reply,/includes 10 players|£10 per|recommend 90 minutes/);
+ assert.match(reply,/upgrade to a mixed-activity combination/);
+});
+test('over 15 children recommends 90 minutes without changing the requested duration',()=>{
+ const q=updateEnquiry({},'Bubble football for 16 kids for 60 minutes',now);
+ assert.match(replyFor(q,'how much?',now),/recommend 90 minutes/);assert.equal(q.duration,60);
+ assert.doesNotMatch(replyFor({...q,duration:90},'how much?',now),/recommend 90 minutes/);
+ assert.match(replyFor({...q,duration:undefined},'yes',now),/recommend 90 minutes/);
+ assert.equal(updateEnquiry({...q,duration:undefined},'yes please',now,'Would you like a 90-minute session?').duration,90);
+});
+test('selected combinations retain their tariff and suppress the combination upsell',()=>{
+ let q=updateEnquiry({},'Bubble football mixed-activity combination for 15 kids, 90 minutes',now);
+ assert.equal(q.package,'combo');assert.match(replyFor(q,'price please',now),/£400/);
+ assert.doesNotMatch(replyFor(q,'price please',now),/upgrade to a mixed-activity combination/);
+ q=updateEnquiry(q,'Ipswich',now);assert.equal(q.package,'combo');
+ assert.equal(updateEnquiry(q,'no combo please',now).package,'single');
+ assert.doesNotMatch(replyFor(updateEnquiry(q,'no combo please',now),'how much?',now),/upgrade to a mixed-activity combination/);
+ assert.equal(updateEnquiry({activity:'bubble football'},'What is the combination package?',now).package,undefined);
+});
+test('Nerf does not inherit bubble equipment claims',()=>{
+ const q=updateEnquiry({},'Nerf for 20 kids for 60 minutes',now);
+ const reply=replyFor(q,'price please',now);assert.doesNotMatch(reply,/10 bubbles/);assert.match(reply,/recommend 90 minutes/);
+});
 
