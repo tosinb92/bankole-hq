@@ -1,9 +1,12 @@
+import {relayEnabled,relayAuthorized,relayDiagnostics,relayLead} from "@/lib/server/meta-lead-relay";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { calculateBubbleQuote, sendBubbleQuoteEmail } from "@/lib/server/bubble-conversion";
 
 export const runtime = "nodejs";
 
+export const runtime="nodejs";
+export const maxDuration=60;
 const PAGE_ID = "1098181786706854";
 
 function normalizeUkPhone(input: unknown) {
@@ -213,6 +216,8 @@ async function ingestLeadgenId(leadgenId: string, webhookValue: any) {
 }
 
 export async function GET(request: NextRequest) {
+  if(relayAuthorized(request.headers.get("authorization"))){try{return NextResponse.json(await relayDiagnostics(PAGE_ID),{headers:{"cache-control":"no-store"}})}catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Meta connection check failed"},{status:503})}}
+
   const url = new URL(request.url);
   const mode = url.searchParams.get("hub.mode");
   const token = url.searchParams.get("hub.verify_token");
@@ -241,7 +246,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!process.env.DATABASE_URL) {
+  if (!process.env.DATABASE_URL && !relayEnabled()) {
     return NextResponse.json({ error: "HQ data connection is unavailable." }, { status: 503 });
   }
 
@@ -264,7 +269,7 @@ export async function POST(request: NextRequest) {
   const results = [];
   for (const value of leadEvents) {
     try {
-      results.push(await ingestLeadgenId(String(value.leadgen_id), value));
+      results.push(relayEnabled()?await relayLead(PAGE_ID,String(value.leadgen_id)):await ingestLeadgenId(String(value.leadgen_id), value));
     } catch (error) {
       console.error("Bubble Leisure Meta lead ingestion failed", error);
       results.push({
