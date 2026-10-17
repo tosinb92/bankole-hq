@@ -4,7 +4,7 @@ import { prisma } from '@/lib/server/prisma';
 import { isConnectionTest, recoverEnquiry, updateEnquiry, replyFor, superseded } from './conversation';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
-type Message = {sid:string;from:string;to:string;name:string;body:string;mediaCount:number};
+type Message = {sid:string;from:string;to:string;name:string;body:string;mediaCount:number;timestamp?:number};
 function authorised(value:string|null) {
  const expected=process.env.BUBBLE_WHATSAPP_HQ_SECRET;
  if(!expected||!value)return false;
@@ -28,6 +28,8 @@ export async function POST(req:Request) {
    let state:any=lead?.requirements||{};
    const cached=await tx.communication.findFirst({where:{ventureId:venture.id,providerMessageId:m.sid}});
    if(cached){const saved=JSON.parse(cached.body||'{}');return {reply:saved.reply,leadId:saved.leadId,duplicate:true,skipReply:superseded(state.lastMessageSid,m.sid)};}
+   if(m.timestamp!==undefined&&(!Number.isFinite(m.timestamp)||m.timestamp<0||m.timestamp>Date.now()/1000+300))throw new Error('Invalid timestamp');
+   if(m.timestamp!==undefined&&typeof state.lastInboundTimestamp==='number'&&m.timestamp<state.lastInboundTimestamp)return {skipReply:true};
    if(!lead)lead=await tx.lead.create({data:{ventureId:venture.id,customerName:m.name||'WhatsApp enquiry',phone:m.from.slice(9),requirements:{source:'WhatsApp'},stage:'NEW_LEAD'}});
    // Derive fields only from customer text, never from an old assistant's claims.
    const enquiryBefore=recoverEnquiry(state.transcript);
@@ -36,7 +38,7 @@ export async function POST(req:Request) {
    const aiStatus='controlled-qualification';
    const email=m.body.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
    const transcript=[...(Array.isArray(state.transcript)?state.transcript:[]),{sid:m.sid,incoming:m.body,reply,at:new Date().toISOString(),mediaCount:m.mediaCount}].slice(-50);
-   await tx.lead.update({where:{id:lead.id},data:{...(email?{email}:{}),requirements:{...state,source:'WhatsApp',previousChatId:null,enquiry,qualificationStatus:'awaiting-availability-check',lastMessageSid:m.sid,transcript,lastMessageAt:new Date().toISOString(),aiStatus}}});
+   await tx.lead.update({where:{id:lead.id},data:{...(email?{email}:{}),requirements:{...state,source:'WhatsApp',previousChatId:null,enquiry,qualificationStatus:'awaiting-availability-check',lastMessageSid:m.sid,lastInboundTimestamp:m.timestamp??Date.now()/1000,transcript,lastMessageAt:new Date().toISOString(),aiStatus}}});
    // Durable message ID record prevents a retried webhook calling AI twice.
    await tx.communication.create({data:{ventureId:venture.id,subject:'WhatsApp enquiry — '+lead.customerName,providerMessageId:m.sid,status:'SENT',body:JSON.stringify({leadId:lead.id,incoming:m.body,reply,aiStatus,delivery:'prepared'})}});
    const existingTask=await tx.task.findFirst({where:{leadId:lead.id,title:'Review WhatsApp enquiry',status:{in:['TODO','IN_PROGRESS']}}});
