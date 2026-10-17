@@ -29,4 +29,36 @@ test('invalid and past dates require clarification',()=>{
 test('cancellation request never promises a refund or changed booking',()=>assert.match(replyFor({},'cancel my booking',now),/no refund or new date has been confirmed/));
 test('a newer message suppresses delayed retry; legacy chats remain compatible',()=>{assert.equal(superseded('new','old'),true);assert.equal(superseded('same','same'),false);assert.equal(superseded(undefined,'old'),false);});
 
-test('price appears before venue/date checks',()=>assert.match(replyFor(updateEnquiry({},'Bubble football for 15 children, 90 minutes',now),'yes',now),/^Your activity estimate is £350/));
+test('price appears before venue/date checks',()=>assert.match(replyFor(updateEnquiry({},'Bubble football for 15 children, 90 minutes',now),'how much?',now),/^Your activity estimate is £350/));
+
+test('one next question accepts a bare town and then asks for date',()=>{
+ const q={activity:'bubble football',participants:15,duration:90};
+ const prompt=replyFor(q,'yes',now);
+ assert.equal((prompt.match(/\?/g)||[]).length,1);
+ const next=updateEnquiry(q,'Manchester',now,prompt);
+ assert.equal(next.location,'Manchester');
+ assert.match(replyFor(next,'Manchester',now),/future date/);
+ assert.doesNotMatch(replyFor(next,'Manchester',now),/start time|age range/);
+});
+test('short answers update the field actually requested',()=>{
+ const q={activity:'bubble football',participants:15,duration:90};
+ assert.equal(updateEnquiry(q,'12',now,'What is the players’ age range?').ages,'12');
+ assert.equal(updateEnquiry(q,'20',now,'How many people will take part?').participants,20);
+ assert.equal(updateEnquiry(q,'60',now,'How many minutes would you like?').duration,60);
+ assert.equal(updateEnquiry(q,'no',now,'Do you have a venue or need us to arrange one?').venue,'needed');
+});
+test('UK and ISO dates, 24-hour time and own garden are retained',()=>{
+ for(const value of ['25/10/2026 at 14:30 in my back garden','2026-10-25 at 14:30 in my garden']){
+  const q=updateEnquiry({},value,now);
+  assert.equal(q.date,'2026-10-25');assert.equal(q.time,'14:30');assert.equal(q.venue,'own');
+ }
+ assert.equal(updateEnquiry({},'31/02/2026',now).date,undefined);
+});
+test('Nerf enquiry gets the live single-activity tariff immediately',()=>{
+ const input='How much for a nerf gun war for 60 minutes for 20 kids';
+ const q=updateEnquiry({},input,now);
+ assert.match(replyFor(q,input,now),/£350/);
+ assert.match(replyFor(q,input,now),/Nerf/);
+ assert.doesNotMatch(replyFor(q,input,now),/bubble football/);
+});
+

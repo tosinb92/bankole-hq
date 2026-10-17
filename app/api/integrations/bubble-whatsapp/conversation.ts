@@ -4,7 +4,7 @@ export type Enquiry = {
 };
 export const HOLDING_DEPOSIT_GBP = 70;
 const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
-export function updateEnquiry(previous: Enquiry, input: string, now = new Date()): Enquiry {
+export function updateEnquiry(previous: Enquiry, input: string, now = new Date(), previousReply = ''): Enquiry {
   const text = input.toLowerCase();
   const activity = /bubble\s*(football|soccer)/.test(text) ? 'bubble football' : /\bnerf\b/.test(text) ? 'Nerf' : undefined;
   // An explicit activity change starts a new enquiry; never carry a former party's details across.
@@ -15,7 +15,10 @@ export function updateEnquiry(previous: Enquiry, input: string, now = new Date()
   const count = text.match(/\b(\d{1,3})\s*(?:children|kids|players|participants|people|adults)\b/);
   if (count && Number(count[1]) > 0) q.participants = Number(count[1]);
   const bareNumber = text.trim().match(/^(\d{1,3})$/);
-  if (bareNumber && Number(bareNumber[1]) > 0 && !q.participants) q.participants = Number(bareNumber[1]);
+  if (bareNumber && /age range/i.test(previousReply) && Number(bareNumber[1]) < 100) q.ages = bareNumber[1];
+  else if (bareNumber && /how many (?:people|players)/i.test(previousReply) && Number(bareNumber[1]) > 0) q.participants = Number(bareNumber[1]);
+  else if (bareNumber && /how many minutes/i.test(previousReply) && Number(bareNumber[1]) > 0) q.duration = Number(bareNumber[1]);
+  else if (bareNumber && Number(bareNumber[1]) > 0 && !q.participants) q.participants = Number(bareNumber[1]);
   else if (bareNumber && !q.duration) q.duration = Number(bareNumber[1]);
   else if (bareNumber && !q.ages && Number(bareNumber[1]) < 100) q.ages = bareNumber[1];
   const duration = text.match(/\b(\d{1,3})\s*(?:minutes?|mins?)\b/);
@@ -28,10 +31,21 @@ export function updateEnquiry(previous: Enquiry, input: string, now = new Date()
   if (postcode) q.location = postcode[0].toUpperCase();
   else if (knownTown) q.location = knownTown[0];
   else if (town && !/\b(?:need|venue|minutes|children)\b/i.test(town[1])) q.location = town[1].trim();
+  else if (/town or postcode/i.test(previousReply) && /^[a-z][a-z '\-]{1,60}$/i.test(input.trim()) && !/^(yes|no|hello|thanks|not sure)$/i.test(input.trim())) q.location = input.trim();
   if (/\b(?:need|provide|find|supply|arrange)\b.{0,25}\bvenue\b|\bno venue\b/.test(text)) q.venue = 'needed';
   if (/\b(?:own|our|my|already (?:have|booked))\b.{0,25}\bvenue\b|\bvenue (?:is )?(?:booked|sorted)\b/.test(text)) q.venue = 'own';
+  if (/\b(?:my|our|the) (?:back )?garden\b/.test(text)) q.venue = 'own';
+  if (/have a venue or need/i.test(previousReply) && /^(?:no|need one|we need one)[.!]?$/i.test(input.trim())) q.venue = 'needed';
+  if (/have a venue or need/i.test(previousReply) && /^(?:yes|have one|we have one)[.!]?$/i.test(input.trim())) q.venue = 'own';
   const age = text.match(/\b(?:aged?|ages?)\s*(\d{1,2}(?:\s*(?:-|to|–)\s*\d{1,2})?)/) || text.match(/^\s*(\d{1,2}\s*(?:-|to|–)\s*\d{1,2})\s*$/);
   if (age) q.ages = age[1].replace(/\s+/g,'');
+  const iso = text.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
+  const uk = text.match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
+  if (iso || uk) {
+    const y=Number(iso?.[1]||uk?.[3]), m=Number(iso?.[2]||uk?.[2]), d=Number(iso?.[3]||uk?.[1]);
+    const candidate=new Date(Date.UTC(y,m-1,d));
+    if(candidate.getUTCFullYear()===y&&candidate.getUTCMonth()===m-1&&candidate.getUTCDate()===d) q.date=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
   const date = text.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december)(?:\s+(20\d{2}))?\b/);
   if (date) {
     const year = date[3] ? Number(date[3]) : now.getUTCFullYear();
@@ -42,12 +56,21 @@ export function updateEnquiry(previous: Enquiry, input: string, now = new Date()
   }
   const time = text.match(/\b(\d{1,2})(?::([0-5]\d))?\s*(am|pm)\b/);
   if (time && Number(time[1]) >= 1 && Number(time[1]) <= 12) q.time = `${String(Number(time[1])%12+(time[3]==='pm'?12:0)).padStart(2,'0')}:${time[2]||'00'}`;
+  const clock=text.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+  if (!time && clock) q.time=clock[1].padStart(2,'0')+':'+clock[2];
   return q;
 }
 export function isConnectionTest(text: string) { return /^\s*automation test(?:\s+\d+)?[.!]?\s*$/i.test(text); }
+// Verified against the owner's live Bubble Leisure Pricing calculator, 18 October 2026.
+// These are activity selling prices; no venue, travel or fulfilment is implied.
+export function activityPrice(q:Enquiry):number|null {
+  if (!['bubble football','Nerf'].includes(q.activity||'') || q.audience !== 'children' || !q.participants || (q.duration !== 60 && q.duration !== 90)) return null;
+  return (q.duration===60?250:300)+Math.max(0,q.participants-10)*10;
+}
 export function activityEstimate(q: Enquiry): string {
-  if (q.activity !== 'bubble football' || q.audience !== 'children' || !q.participants || (q.duration !== 60 && q.duration !== 90)) return '';
-  return `Your activity estimate is £${(q.duration === 60 ? 250 : 300)+Math.max(0,q.participants-10)*10} for ${q.participants} children and ${q.duration} minutes. This includes 10 players, then £10 per additional child. Venue hire, travel and extras are additional; availability is unconfirmed.`;
+  const price=activityPrice(q);
+  if (price===null) return '';
+  return `Your activity estimate is £${price} for ${q.participants} children and ${q.duration} minutes of ${q.activity}. This includes 10 players, then £10 per additional child. Venue hire, travel and extras are additional; availability is unconfirmed.`;
 }
 export function replyFor(q: Enquiry, input: string, now = new Date()): string {
   if (isConnectionTest(input)) return 'Bubble Leisure connection test received. This is a test only; no booking or availability has been confirmed.';
@@ -63,8 +86,19 @@ export function replyFor(q: Enquiry, input: string, now = new Date()): string {
   if (!q.time) missing.push('preferred start time (am/pm)');
   if (!q.ages) missing.push('players’ age range');
   if (!q.venue) missing.push('whether you have a venue or need one');
-  if (missing.length) return `${activityEstimate(q)} Please send ${missing.join(', ')} so the enquiry can move to an availability check.`.trim();
-  const childTariff = q.activity === 'bubble football' && q.audience === 'children' && (q.duration === 60 || q.duration === 90);
+  if (missing.length) {
+    const prompts:Record<string,string>={
+      'the town or postcode':'What is the town or postcode for the event?',
+      'a future date (day, month and year)':'What future date would you like (day, month and year)?',
+      'preferred start time (am/pm)':'What is your preferred start time (am/pm)?',
+      'players’ age range':'What is the players’ age range?',
+      'whether you have a venue or need one':'Do you have a venue or need us to arrange one?'
+    };
+    // Show the estimate when requirements arrive or the customer asks about price.
+    const showPrice=/\b(price|cost|much|quote|minutes?|mins?|hours?|players|children|kids)\b/i.test(input);
+    return `${showPrice?activityEstimate(q):''} ${prompts[missing[0]]}`.trim();
+  }
+  const childTariff = activityPrice(q)!==null;
   const summary = `${q.activity}, ${q.participants} players aged ${q.ages}, ${q.duration} minutes, ${q.location}, ${q.date} at ${q.time}`;
   const price = childTariff ? activityEstimate(q) : 'This combination needs a checked price before a quote can be issued.';
   return `Your enquiry details are saved: ${summary}. ${price} ${q.venue === 'needed'?'You need a venue; its price and availability still require confirmation.':'You are providing the venue; its suitability and booking time still require confirmation.'} Equipment and an accepted operator must also be confirmed. No slot is reserved and no booking is confirmed. Once the date can be provisionally held, the holding deposit is £${HOLDING_DEPOSIT_GBP}, credited towards your total. Final confirmation follows after the venue is confirmed and any required venue payment is recorded. The enquiry is awaiting an availability check; a payment link is not available in this chat yet.`;
@@ -76,3 +110,4 @@ export function recoverEnquiry(transcript: unknown, now = new Date()): Enquiry {
   return q;
 }
 export function superseded(latestSid: unknown, sid: string) { return typeof latestSid === 'string' && latestSid !== sid; }
+

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { prisma } from '@/lib/server/prisma';
-import { isConnectionTest, recoverEnquiry, updateEnquiry, replyFor, superseded } from './conversation';
+import { isConnectionTest, recoverEnquiry, updateEnquiry, replyFor, superseded, activityPrice } from './conversation';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 type Message = {sid:string;from:string;to:string;name:string;body:string;mediaCount:number;timestamp?:number};
@@ -32,13 +32,21 @@ export async function POST(req:Request) {
    if(m.timestamp!==undefined&&typeof state.lastInboundTimestamp==='number'&&m.timestamp<state.lastInboundTimestamp)return {skipReply:true};
    if(!lead)lead=await tx.lead.create({data:{ventureId:venture.id,customerName:m.name||'WhatsApp enquiry',phone:m.from.slice(9),requirements:{source:'WhatsApp'},stage:'NEW_LEAD'}});
    // Derive fields only from customer text, never from an old assistant's claims.
-   const enquiryBefore=recoverEnquiry(state.transcript);
-   const enquiry=isConnectionTest(m.body)?enquiryBefore:updateEnquiry(enquiryBefore,m.body);
-   const reply=replyFor(enquiry,m.body);
+   // The durable enquiry outlives the rolling transcript; replay is for legacy chats only.
+   const enquiryBefore=state.enquiry && typeof state.enquiry==='object' && !Array.isArray(state.enquiry)
+    ? state.enquiry : recoverEnquiry(state.transcript);
+   const previousReply=Array.isArray(state.transcript)?state.transcript.at(-1)?.reply:undefined;
+   const enquiry=isConnectionTest(m.body)?enquiryBefore:updateEnquiry(enquiryBefore,m.body,new Date(),previousReply);
+   const baseReply=replyFor(enquiry,m.body);
+   const price=activityPrice(enquiry);
+   const quoteDetails=price===null?null:{activity:enquiry.activity,participants:enquiry.participants,duration:enquiry.duration,amount:price,currency:'GBP',scope:'activity-only',status:'estimate'};
+   const sameQuote=quoteDetails&&state.activityQuote&&Object.entries(quoteDetails).every(([key,value])=>state.activityQuote[key]===value);
+   const activityQuote=quoteDetails?{...quoteDetails,reference:sameQuote?state.activityQuote.reference:'BL-'+m.sid.slice(2,18).toUpperCase()}:null;
+   const reply=activityQuote&&baseReply.includes('Your activity estimate is')?baseReply+' Estimate reference: '+activityQuote.reference+'.':baseReply;
    const aiStatus='controlled-qualification';
    const email=m.body.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
    const transcript=[...(Array.isArray(state.transcript)?state.transcript:[]),{sid:m.sid,incoming:m.body,reply,at:new Date().toISOString(),mediaCount:m.mediaCount}].slice(-50);
-   await tx.lead.update({where:{id:lead.id},data:{...(email?{email}:{}),requirements:{...state,source:'WhatsApp',previousChatId:null,enquiry,qualificationStatus:'awaiting-availability-check',lastMessageSid:m.sid,lastInboundTimestamp:m.timestamp??Date.now()/1000,transcript,lastMessageAt:new Date().toISOString(),aiStatus}}});
+   await tx.lead.update({where:{id:lead.id},data:{...(email?{email}:{}),requirements:{...state,source:'WhatsApp',previousChatId:null,enquiry,activityQuote,qualificationStatus:'awaiting-availability-check',lastMessageSid:m.sid,lastInboundTimestamp:m.timestamp??Date.now()/1000,transcript,lastMessageAt:new Date().toISOString(),aiStatus}}});
    // Durable message ID record prevents a retried webhook calling AI twice.
    await tx.communication.create({data:{ventureId:venture.id,subject:'WhatsApp enquiry — '+lead.customerName,providerMessageId:m.sid,status:'SENT',body:JSON.stringify({leadId:lead.id,incoming:m.body,reply,aiStatus,delivery:'prepared'})}});
    const existingTask=await tx.task.findFirst({where:{leadId:lead.id,title:'Review WhatsApp enquiry',status:{in:['TODO','IN_PROGRESS']}}});
@@ -80,3 +88,4 @@ export async function PATCH(req:Request){
   return NextResponse.json(result);
  }catch{return NextResponse.json({error:'Delivery update failed'},{status:503});}
 }
+

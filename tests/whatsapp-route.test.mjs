@@ -34,3 +34,17 @@ test('route saves once, preserves continuity and suppresses old retries',async()
  const duplicateClaim=await (await route.PATCH(request({sid:sid2,action:'claim'},'PATCH'))).json();assert.equal(duplicateClaim.claimed,false);
  assert.equal((await route.POST(request({...base,sid:sid3,body:'x'},'POST','wrong'))).status,401);
 });
+
+test('durable event details survive transcript truncation and a new invocation',async()=>{
+ lead.requirements={enquiry:{activity:'bubble football',participants:15,duration:90,location:'Ipswich',date:'2027-10-25',time:'11:00',ages:'10-13',venue:'needed',audience:'children'},transcript:Array.from({length:50},()=>({incoming:'thank you',reply:'Your details are saved'}))};
+ const res=await route.POST(request({...base,sid:'SM'+'4'.repeat(32),body:'How much was that again?'}));
+ const body=await res.json();
+ assert.equal(res.status,200);assert.match(body.reply,/£350/);
+ assert.equal(lead.requirements.enquiry.participants,15);
+ assert.equal(lead.requirements.transcript.length,50);
+ assert.equal(lead.requirements.activityQuote.amount,350);
+ const reference=lead.requirements.activityQuote.reference;
+ await route.POST(request({...base,sid:'SM'+'5'.repeat(32),body:'How much?'}));
+ assert.equal(lead.requirements.activityQuote.reference,reference);
+});
+
