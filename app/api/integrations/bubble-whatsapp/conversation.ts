@@ -2,6 +2,7 @@ export type Enquiry = {
   activity?: string; participants?: number; duration?: number; location?: string; audience?: 'children' | 'adults';
   date?: string; time?: string; ages?: string; venue?: 'own' | 'needed';
 };
+export const HOLDING_DEPOSIT_GBP = 70;
 const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
 export function updateEnquiry(previous: Enquiry, input: string, now = new Date()): Enquiry {
   const text = input.toLowerCase();
@@ -50,9 +51,9 @@ export function replyFor(q: Enquiry, input: string, now = new Date()): string {
   if (/\b(cancel|refund|complaint|reschedule|change my booking)\b/i.test(input)) return 'Your booking change or cancellation request has been saved for review. Your booking and any payment terms remain unchanged until the request is processed; no refund or new date has been confirmed.';
   if (!q.activity) return 'Which activity would you like, and how many people will take part?';
   if (!q.participants || !q.duration) return `For your ${q.activity} enquiry, please send ${!q.participants?'the number of players':''}${!q.participants&&!q.duration?' and ':''}${!q.duration?'the session length in minutes':''}.`;
-  if (!q.location) return `What town or postcode is your ${q.activity} event in?`;
   const today = now.toISOString().slice(0,10);
   const missing = [];
+  if (!q.location) missing.push('the town or postcode');
   if (!q.date || q.date < today) missing.push('a future date (day, month and year)');
   if (!q.time) missing.push('preferred start time (am/pm)');
   if (!q.ages) missing.push('players’ age range');
@@ -61,7 +62,7 @@ export function replyFor(q: Enquiry, input: string, now = new Date()): string {
   const childTariff = q.activity === 'bubble football' && q.audience === 'children' && (q.duration === 60 || q.duration === 90);
   const summary = `${q.activity}, ${q.participants} players aged ${q.ages}, ${q.duration} minutes, ${q.location}, ${q.date} at ${q.time}`;
   const price = childTariff ? activityEstimate(q) : 'This combination needs a checked price before a quote can be issued.';
-  return `Your enquiry details are saved: ${summary}. ${price} ${q.venue === 'needed'?'You need a venue; its price and availability still require confirmation.':'You are providing the venue; its suitability and booking time still require confirmation.'} Equipment and an accepted operator must also be confirmed. No slot is reserved and no booking is confirmed. The enquiry is awaiting an availability check; there is no confirmed booking link to send yet.`;
+  return `Your enquiry details are saved: ${summary}. ${price} ${q.venue === 'needed'?'You need a venue; its price and availability still require confirmation.':'You are providing the venue; its suitability and booking time still require confirmation.'} Equipment and an accepted operator must also be confirmed. No slot is reserved and no booking is confirmed. Once the date can be provisionally held, the holding deposit is £${HOLDING_DEPOSIT_GBP}, credited towards your total. Final confirmation follows after the venue is confirmed and any required venue payment is recorded. The enquiry is awaiting an availability check; a payment link is not available in this chat yet.`;
 }
 export function recoverEnquiry(transcript: unknown, now = new Date()): Enquiry {
   let q: Enquiry = {};
