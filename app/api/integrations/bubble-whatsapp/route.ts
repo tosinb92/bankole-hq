@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { prisma } from '@/lib/server/prisma';
+import { isConnectionTest, recoverEnquiry, updateEnquiry, replyFor, superseded } from './conversation';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 type Message = {sid:string;from:string;to:string;name:string;body:string;mediaCount:number};
@@ -11,7 +12,7 @@ function authorised(value:string|null) {
  return a.length===b.length&&timingSafeEqual(a,b);
 }
 export async function GET() {
- return NextResponse.json({ready:Boolean(process.env.DATABASE_URL&&process.env.BUBBLE_WHATSAPP_HQ_SECRET&&process.env.VAPI_API_KEY&&process.env.VAPI_ASSISTANT_ID),channel:'whatsapp'});
+ return NextResponse.json({ready:Boolean(process.env.DATABASE_URL&&process.env.BUBBLE_WHATSAPP_HQ_SECRET),channel:'whatsapp'});
 }
 export async function POST(req:Request) {
  if(!authorised(req.headers.get('x-bubble-whatsapp-secret')))return NextResponse.json({error:'Unauthorized'},{status:401});
@@ -26,38 +27,18 @@ export async function POST(req:Request) {
    let lead=await tx.lead.findFirst({where:{ventureId:venture.id,phone:m.from.slice(9),requirements:{path:['source'],equals:'WhatsApp'}},orderBy:{createdAt:'desc'}});
    let state:any=lead?.requirements||{};
    const cached=await tx.communication.findFirst({where:{ventureId:venture.id,providerMessageId:m.sid}});
-   if(cached){const saved=JSON.parse(cached.body||'{}');return {reply:saved.reply,leadId:saved.leadId,duplicate:true};}
+   if(cached){const saved=JSON.parse(cached.body||'{}');return {reply:saved.reply,leadId:saved.leadId,duplicate:true,skipReply:superseded(state.lastMessageSid,m.sid)};}
    if(!lead)lead=await tx.lead.create({data:{ventureId:venture.id,customerName:m.name||'WhatsApp enquiry',phone:m.from.slice(9),requirements:{source:'WhatsApp'},stage:'NEW_LEAD'}});
-   let reply='Thanks for contacting Bubble Leisure. Your enquiry has been saved for our team. Please send your activity, preferred date, town/postcode, group size and ages.';
-   let chatId=state.previousChatId;
-   let aiStatus='unavailable';
-   if(!m.body.trim()) {
-    reply='Thanks for your message. Please type your enquiry here so we can help. Attachments and voice notes are not currently read by this assistant.';
-    aiStatus='text-required';
-   } else if(process.env.VAPI_API_KEY&&process.env.VAPI_ASSISTANT_ID) {
-    try {
-     const r=await fetch('https://api.vapi.ai/chat',{method:'POST',headers:{Authorization:'Bearer '+process.env.VAPI_API_KEY,'content-type':'application/json'},
-      body:JSON.stringify({assistantId:process.env.VAPI_ASSISTANT_ID,input:m.body,...(chatId?{previousChatId:chatId}:{})}),signal:AbortSignal.timeout(6000)});
-     if(!r.ok){
-      aiStatus='vapi-http-'+r.status;
-      if(r.status===402){
-       const reason=(await r.text()).toLowerCase();
-       if(reason.includes('purchase credits')||reason.includes('completed payment'))aiStatus='vapi-completed-purchase-required';
-       else if(reason.includes('payment method')||reason.includes('card on file'))aiStatus='vapi-payment-method-required';
-      }
-      throw new Error('Vapi request failed');
-     }
-     const data=await r.json();
-     const output=(data.output||[]).filter((x:any)=>x.role==='assistant'&&typeof x.content==='string').map((x:any)=>x.content).join('\n').trim();
-     if(!output){aiStatus='empty-ai-reply';throw new Error('Empty Vapi reply');}
-     reply=output.slice(0,1500);chatId=data.id;aiStatus='replied';
-    }catch(error){if(aiStatus==='unavailable')aiStatus=error instanceof Error&&error.name==='TimeoutError'?'ai-timeout':'ai-request-failed';console.error('Bubble WhatsApp AI unavailable',aiStatus);}
-   }
+   // Derive fields only from customer text, never from an old assistant's claims.
+   const enquiryBefore=recoverEnquiry(state.transcript);
+   const enquiry=isConnectionTest(m.body)?enquiryBefore:updateEnquiry(enquiryBefore,m.body);
+   const reply=replyFor(enquiry,m.body);
+   const aiStatus='controlled-qualification';
    const email=m.body.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
    const transcript=[...(Array.isArray(state.transcript)?state.transcript:[]),{sid:m.sid,incoming:m.body,reply,at:new Date().toISOString(),mediaCount:m.mediaCount}].slice(-50);
-   await tx.lead.update({where:{id:lead.id},data:{...(email?{email}:{}),requirements:{...state,source:'WhatsApp',previousChatId:chatId||null,transcript,lastMessageAt:new Date().toISOString(),aiStatus}}});
+   await tx.lead.update({where:{id:lead.id},data:{...(email?{email}:{}),requirements:{...state,source:'WhatsApp',previousChatId:null,enquiry,qualificationStatus:'awaiting-availability-check',lastMessageSid:m.sid,transcript,lastMessageAt:new Date().toISOString(),aiStatus}}});
    // Durable message ID record prevents a retried webhook calling AI twice.
-   await tx.communication.create({data:{ventureId:venture.id,subject:'WhatsApp enquiry — '+lead.customerName,providerMessageId:m.sid,status:'SENT',body:JSON.stringify({leadId:lead.id,incoming:m.body,reply,aiStatus,delivery:'TwiML response prepared; handset delivery unconfirmed'})}});
+   await tx.communication.create({data:{ventureId:venture.id,subject:'WhatsApp enquiry — '+lead.customerName,providerMessageId:m.sid,status:'SENT',body:JSON.stringify({leadId:lead.id,incoming:m.body,reply,aiStatus,delivery:'prepared'})}});
    const existingTask=await tx.task.findFirst({where:{leadId:lead.id,title:'Review WhatsApp enquiry',status:{in:['TODO','IN_PROGRESS']}}});
    if(!existingTask)await tx.task.create({data:{ventureId:venture.id,leadId:lead.id,title:'Review WhatsApp enquiry',status:'TODO',priority:2}});
    return {reply,leadId:lead.id,aiStatus};
@@ -79,6 +60,12 @@ export async function PATCH(req:Request){
    const record=await tx.communication.findFirst({where:{ventureId:venture.id,providerMessageId:b.sid}});
    if(!record)throw new Error('Missing message');
    const state=JSON.parse(record.body||'{}');
+   const lead=state.leadId?await tx.lead.findUnique({where:{id:state.leadId}}):null;
+   const current:any=lead?.requirements||{};
+   if(b.action==='claim'&&superseded(current.lastMessageSid,b.sid)){
+    await tx.communication.update({where:{id:record.id},data:{body:JSON.stringify({...state,delivery:'superseded'})}});
+    return {claimed:false,delivery:'superseded'};
+   }
    if(b.action==='claim'){
     if(state.delivery==='sent')return {claimed:false,delivery:'sent'};
     if(state.delivery==='sending'&&Date.now()-Number(state.claimedAt||0)<60000)return {claimed:false,delivery:'sending'};
