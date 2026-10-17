@@ -42,7 +42,7 @@ export function estimateBubblePrice(req: any) {
   const total = missing.length ? null : activityPrice + venueFee! + travelFee! + addOnFee!;
   return { ok: true as const, activity, guests, duration, basePrice, extraPlayers,
     extraPlayerCharge: extraPlayers * 10, activityPrice, customerPrice: total,
-    depositAmount: 50, balanceAmount: total == null ? null : total - 50,
+    depositAmount: 70, balanceAmount: total == null ? null : total - 70,
     currency: "GBP", missing, pricingSource: BUBBLE_PRICING_SOURCE };
 }
 
@@ -92,3 +92,4 @@ export async function sendBubbleQuoteEmail(leadId: string, bookingUrl?: string) 
   await prisma.lead.update({ where:{id:lead.id}, data:{stage:"FOLLOW_UP"} });
   return { sent:true as const, providerMessageId:String(body?.id || ""), quoteId:quote.id };
 }
+
