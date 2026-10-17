@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { updateEnquiry, replyFor, recoverEnquiry, superseded } from '../app/api/integrations/bubble-whatsapp/conversation.ts';
+const source = new URL('../app/api/integrations/bubble-whatsapp/conversation.ts', import.meta.url).href;
+const { updateEnquiry, replyFor, recoverEnquiry, superseded } = await import(source);
 const now=new Date('2026-10-17T22:00:00Z');
 test('activity change discards old Nerf details',()=>{
  const q=updateEnquiry({activity:'Nerf',participants:12,date:'2026-11-01'},'Bubble football for 15 children, 90 minutes, in Ipswich. I need a venue',now);
@@ -27,3 +28,5 @@ test('invalid and past dates require clarification',()=>{
 });
 test('cancellation request never promises a refund or changed booking',()=>assert.match(replyFor({},'cancel my booking',now),/no refund or new date has been confirmed/));
 test('a newer message suppresses delayed retry; legacy chats remain compatible',()=>{assert.equal(superseded('new','old'),true);assert.equal(superseded('same','same'),false);assert.equal(superseded(undefined,'old'),false);});
+
+test('price appears before venue/date checks',()=>assert.match(replyFor(updateEnquiry({},'Bubble football for 15 children, 90 minutes',now),'yes',now),/^Your activity estimate is £350/));
