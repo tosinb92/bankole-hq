@@ -42,8 +42,14 @@ export function updateEnquiry(previous: Enquiry, input: string, now = new Date()
   if (/\b(?:need|provide|find|supply|arrange)\b.{0,25}\bvenue\b|\bno venue\b/.test(text)) q.venue = 'needed';
   if (/\b(?:own|our|my|already (?:have|booked))\b.{0,25}\bvenue\b|\bvenue (?:is )?(?:booked|sorted)\b/.test(text)) q.venue = 'own';
   if (/\b(?:my|our|the) (?:back )?garden\b/.test(text)) q.venue = 'own';
-  if (/have a venue or need/i.test(previousReply) && /^(?:no|need one|we need one)[.!]?$/i.test(input.trim())) q.venue = 'needed';
-  if (/have a venue or need/i.test(previousReply) && /^(?:yes|have one|we have one)[.!]?$/i.test(input.trim())) q.venue = 'own';
+  if (/have a venue or need/i.test(previousReply)) {
+    const venueAnswer=input.trim();
+    if (/\b(?:please\s+)?(?:arrange|find|provide|book|source)\s+(?:one|a venue)\b/i.test(venueAnswer)
+      || /\b(?:i|we)\s+(?:do not|don['’]t|dont)\s+have\s+(?:one|a venue)\b/i.test(venueAnswer)
+      || /^(?:no|nope|need one|we need one)[.!]?$/i.test(venueAnswer)) q.venue = 'needed';
+    else if (/\b(?:yes[, ]*)?(?:i|we)\s+(?:already\s+)?(?:have|booked)\s+(?:one|a venue)\b/i.test(venueAnswer)
+      || /^(?:yes|have one|we have one)[.!]?$/i.test(venueAnswer)) q.venue = 'own';
+  }
   const age = text.match(/\b(?:aged?|ages?)\s*(\d{1,2}(?:\s*(?:-|to|–)\s*\d{1,2})?)/) || text.match(/^\s*(\d{1,2}\s*(?:-|to|–)\s*\d{1,2})\s*$/);
   if (age) q.ages = age[1].replace(/\s+/g,'');
   const iso = text.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
