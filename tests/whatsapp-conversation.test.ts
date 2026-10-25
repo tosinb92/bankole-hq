@@ -47,6 +47,19 @@ test('short answers update the field actually requested',()=>{
  assert.equal(updateEnquiry(q,'60',now,'How many minutes would you like?').duration,60);
  assert.equal(updateEnquiry(q,'no',now,'Do you have a venue or need us to arrange one?').venue,'needed');
 });
+test('venue replies like “Please arrange one” and “I don’t have one” are understood',()=>{
+ const q={activity:'bubble football',audience:'children' as const,participants:15,duration:90,location:'Ipswich',date:'2027-10-25',time:'11:00',ages:'10-13'};
+ const prompt='Do you have a venue or need us to arrange one?';
+ for(const answer of ['Please arrange one','No I don’t have one','I do not have one','Please find one']){
+  const updated=updateEnquiry(q,answer,now,prompt);
+  assert.equal(updated.venue,'needed',answer);
+  assert.match(replyFor(updated,answer,now),/You need a venue/);
+  assert.doesNotMatch(replyFor(updated,answer,now),/Do you have a venue or need us to arrange one/);
+ }
+ for(const answer of ['Yes, I have one','We have one']){
+  assert.equal(updateEnquiry(q,answer,now,prompt).venue,'own',answer);
+ }
+});
 test('UK and ISO dates, 24-hour time and own garden are retained',()=>{
  for(const value of ['25/10/2026 at 14:30 in my back garden','2026-10-25 at 14:30 in my garden']){
   const q=updateEnquiry({},value,now);
